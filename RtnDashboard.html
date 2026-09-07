@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Returns Analytics Dashboard</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/lucide@latest/dist/lucide.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --background: 220 20% 97%;
+            --foreground: 222 47% 11%;
+            --card: 0 0% 100%;
+            --card-foreground: 222 47% 11%;
+            --primary: 217 91% 50%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 220 14% 96%;
+            --secondary-foreground: 222 47% 11%;
+            --muted: 220 14% 96%;
+            --muted-foreground: 220 9% 46%;
+            --accent: 217 91% 95%;
+            --accent-foreground: 217 91% 40%;
+            --destructive: 0 84% 60%;
+            --destructive-foreground: 0 0% 100%;
+            --success: 142 76% 36%;
+            --success-foreground: 0 0% 100%;
+            --warning: 38 92% 50%;
+            --warning-foreground: 0 0% 100%;
+            --border: 220 13% 91%;
+            --input: 220 13% 91%;
+            --ring: 217 91% 50%;
+            --radius: 0.75rem;
+            --sidebar-background: 222 47% 11%;
+            --sidebar-foreground: 220 14% 96%;
+            --sidebar-primary: 217 91% 60%;
+            --sidebar-primary-foreground: 0 0% 100%;
+            --sidebar-accent: 222 47% 18%;
+            --sidebar-accent-foreground: 220 14% 96%;
+            --sidebar-border: 222 47% 18%;
+            --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+            --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1), 0 2px 4px -2px hsl(222 47% 11% / 0.1);
+            --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -4px hsl(222 47% 11% / 0.1);
+            --gradient-primary: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #047857 100%);
+            --gradient-destructive: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --gradient-excel: linear-gradient(135deg, #107c41 0%, #1f4e38 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: hsl(var(--background));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid hsl(var(--border));
+            border-top-color: hsl(var(--primary));
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Main layout */
+        .main-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: var(--gradient-primary);
+            color: hsl(var(--sidebar-foreground));
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            white-space: nowrap;
+            background: linear-gradient(135deg, #ffffff 0%, #e5e7eb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: calc(var(--radius) - 4px);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .nav-item:hover::before {
+            left: 100%;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .nav-item span {
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .sidebar-footer {
+            padding: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-footer-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: white;
+        }
+
+        .sidebar-footer-subtitle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background: linear-gradient(135deg, hsl(var(--background)) 0%, #f8fafc 100%);
+            padding: 24px;
+        }
+
+        .main-header {
+            margin-bottom: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-header .header-left h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(135deg, hsl(var(--foreground)) 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .main-header .header-left p {
+            color: hsl(var(--muted-foreground));
+            font-size: 16px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-weight: 600;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            letter-spacing: -0.01em;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+        }
+
+        .btn-excel {
+            background: var(--gradient-excel);
+            color: white;
+            box-shadow: 0 4px 12px rgba(16, 124, 65, 0.25);
+        }
+
+        .btn-excel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 124, 65, 0.35);
+        }
+
+        .btn-outline {
+            background: white;
+            color: hsl(var(--foreground));
+            border-color: hsl(var(--border));
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--secondary));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            color: hsl(var(--muted-foreground));
+        }
+
+        .btn-icon:hover {
+            background: hsl(var(--secondary));
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        /* Filters Section */
+        .filters-section {
+            margin-bottom: 32px;
+            position: relative;
+        }
+
+        .filters-container {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            align-items: start;
+            position: relative;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            position: relative;
+            z-index: 1;
+            min-height: 80px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .filter-group label::before {
+            content: '↳';
+            color: hsl(var(--primary));
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .date-input {
+            padding: 12px;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 4px);
+            font-size: 14px;
+            flex: 1;
+            transition: all 0.3s ease;
+            min-width: 0;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+        }
+
+        .shop-text-input {
+            padding: 12px;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 4px);
+            font-size: 14px;
+            background: white;
+            transition: all 0.3s ease;
+            width: 100%;
+            font-family: 'Monaco', 'Consolas', monospace;
+            color: hsl(var(--foreground));
+        }
+
+        .shop-text-input:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+        }
+
+        .filter-select {
+            padding: 12px;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 4px);
+            font-size: 14px;
+            background: white;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            max-height: 42px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 3px hsl(var(--ring) / 0.1);
+            z-index: 100 !important;
+            position: relative;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .kpi-card {
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+            border-radius: 50%;
+            transform: translate(30%, -30%);
+        }
+
+        .kpi-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .kpi-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.2);
+        }
+
+        .kpi-icon.total-value { background: var(--gradient-primary); }
+        .kpi-icon.refundable { background: var(--gradient-success); }
+        .kpi-icon.non-refundable { background: var(--gradient-destructive); }
+        .kpi-icon.return-count { background: var(--gradient-warning); }
+
+        .kpi-icon i {
+            width: 24px;
+            height: 24px;
+        }
+
+        .kpi-trend {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .trend-up { color: hsl(var(--success)); }
+        .trend-down { color: hsl(var(--destructive)); }
+
+        .kpi-content h3 {
+            font-size: 16px;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .kpi-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .text-success { color: hsl(var(--success)); }
+        .text-destructive { color: hsl(var(--destructive)); }
+
+        .kpi-subtitle {
+            font-size: 14px;
+            color: hsl(var(--muted-foreground));
+            opacity: 0.8;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card { padding: 24px; }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+        }
+
+        .chart-period-select {
+            padding: 8px 16px;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 4px);
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        /* Data Table Section */
+        .data-section { margin-top: 32px; }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, hsl(var(--foreground)) 0%, #475569 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: calc(var(--radius) - 4px);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            table-layout: fixed;
+            min-width: 0;
+        }
+
+        .data-table th {
+            background: hsl(var(--secondary));
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            border-bottom: 1px solid hsl(var(--border));
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .data-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid hsl(var(--border));
+            color: hsl(var(--foreground));
+            transition: background-color 0.3s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover td {
+            background: hsl(var(--secondary) / 0.5);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            line-height: 1;
+        }
+
+        .badge-pending { background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); color: white; }
+        .badge-approved { background: linear-gradient(135deg, #34d399 0%, #10b981 100%); color: white; }
+        .badge-rejected { background: linear-gradient(135deg, #f87171 0%, #ef4444 100%); color: white; }
+        .badge-completed { background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%); color: white; }
+
+        /* Table Footer */
+        .table-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border-top: 1px solid hsl(var(--border));
+            background: hsl(var(--secondary) / 0.3);
+            font-size: 13px;
+        }
+
+        .table-pagination {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1001;
+        }
+
+        .toast {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 12px;
+            min-width: 320px;
+            max-width: 400px;
+            border-left: 4px solid hsl(var(--primary));
+        }
+
+        .toast.success { border-left-color: hsl(var(--success)); }
+        .toast.error { border-left-color: hsl(var(--destructive)); }
+        .toast.warning { border-left-color: hsl(var(--warning)); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .mono {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 11px;
+        }
+
+        /* Return Details Modal Styles */
+        .return-details-modal { max-width: 1000px; }
+        .details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .doc-info h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin-bottom: 4px;
+        }
+
+        .doc-id {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 16px;
+            color: hsl(var(--primary));
+            font-weight: 500;
+        }
+
+        .details-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .details-section {
+            background: hsl(var(--secondary) / 0.3);
+            border-radius: var(--radius);
+            padding: 20px;
+        }
+
+        .details-section.full-width { width: 100%; }
+
+        .details-section h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid hsl(var(--border) / 0.5);
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .detail-label {
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            min-width: 150px;
+        }
+
+        .detail-value {
+            flex: 1;
+            text-align: right;
+            color: hsl(var(--foreground));
+        }
+
+        .financial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .financial-card {
+            background: white;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 4px);
+            padding: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .financial-label {
+            font-weight: 600;
+            color: hsl(var(--foreground));
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .financial-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .details-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid hsl(var(--border));
+        }
+
+        .btn-icon.view-details {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            border-color: #8b5cf6;
+            color: white;
+        }
+
+        .btn-icon.view-details:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Modal Container */
+        #modal-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            pointer-events: auto;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: hsl(var(--muted-foreground));
+            transition: all 0.2s ease;
+        }
+
+        .modal-body { padding: 20px; }
+
+        @media (max-width: 1024px) {
+            .sidebar { width: 80px; }
+            .sidebar-header h2, .nav-item span, .sidebar-footer-title, .sidebar-footer-subtitle { display: none; }
+            .filters-container { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content { padding: 16px; }
+            .kpi-grid, .filters-container, .charts-grid { grid-template-columns: 1fr; }
+            .main-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+            .section-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Loading screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loading-spinner"></div>
+            <p>Loading Returns Analytics Dashboard...</p>
+        </div>
+
+        <!-- Main layout -->
+        <div id="main-layout" class="main-layout hidden">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Returns Analytics</h2>
+                </div>
+                <div class="sidebar-nav">
+                    <div class="nav-item active">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </div>
+                </div>
+                <div class="sidebar-footer">
+                    <p class="sidebar-footer-title">Purchasing Division</p>
+                    <p class="sidebar-footer-subtitle">Developed By: Chandana Edirisinghe</p>
+                </div>
+            </aside>
+
+            <!-- Main content -->
+            <main class="main-content">
+                <header class="main-header">
+                    <div class="header-left">
+                        <h1>Returns Analytics Dashboard</h1>
+                        <p>Real-time analytics for product returns management</p>
+                    </div>
+                    <div class="header-right">
+                        <button id="refresh-data" class="btn btn-outline">
+                            <i data-lucide="refresh-cw"></i>
+                            Refresh Data
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Filters Section -->
+                <div class="filters-section">
+                    <div class="card">
+                        <div class="filters-container">
+                            <div class="filter-group">
+                                <label for="filter-date-from">Date Range</label>
+                                <div class="date-range">
+                                    <input type="date" id="filter-date-from" class="date-input">
+                                    <span>to</span>
+                                    <input type="date" id="filter-date-to" class="date-input">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-status">Status</label>
+                                <select id="filter-status" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-store">Store</label>
+                                <select id="filter-store" class="filter-select">
+                                    <option value="">All Stores</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-shop3ps-text">Shop (3ps)</label>
+                                <input type="text" id="filter-shop3ps-text" class="shop-text-input" placeholder="Enter shop number...">
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-center">Purchasing Center</label>
+                                <select id="filter-center" class="filter-select">
+                                    <option value="">All Centers</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-officer">Purchasing Officer</label>
+                                <select id="filter-officer" class="filter-select">
+                                    <option value="">All Officers</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-actions">
+                                <button class="btn btn-primary" id="apply-filters">
+                                    <i data-lucide="filter"></i>
+                                    Apply Filters
+                                </button>
+                                <button class="btn btn-outline" id="clear-filters">
+                                    <i data-lucide="x"></i>
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="card kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon total-value">
+                                <i data-lucide="dollar-sign"></i>
+                            </div>
+                            <div class="kpi-trend">
+                                <span class="trend-up">↑ 12%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <h3>Total Return Value</h3>
+                            <div class="kpi-value" id="total-return-value">$0.00</div>
+                            <div class="kpi-subtitle">All returns</div>
+                        </div>
+                    </div>
+
+                    <div class="card kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon refundable">
+                                <i data-lucide="refresh-cw"></i>
+                            </div>
+                            <div class="kpi-trend">
+                                <span class="trend-up">↑ 8%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <h3>Refundable Value</h3>
+                            <div class="kpi-value text-success" id="refundable-value">$0.00</div>
+                            <div class="kpi-subtitle">Eligible for refund</div>
+                        </div>
+                    </div>
+
+                    <div class="card kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon non-refundable">
+                                <i data-lucide="alert-triangle"></i>
+                            </div>
+                            <div class="kpi-trend">
+                                <span class="trend-down">↓ 3%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <h3>Non-Refundable Value</h3>
+                            <div class="kpi-value text-destructive" id="non-refundable-value">$0.00</div>
+                            <div class="kpi-subtitle">Lost value</div>
+                        </div>
+                    </div>
+
+                    <div class="card kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon return-count">
+                                <i data-lucide="package"></i>
+                            </div>
+                            <div class="kpi-trend">
+                                <span class="trend-up">↑ 15%</span>
+                            </div>
+                        </div>
+                        <div class="kpi-content">
+                            <h3>Total Returns</h3>
+                            <div class="kpi-value" id="total-returns">0</div>
+                            <div class="kpi-subtitle">Number of returns</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-grid">
+                    <div class="card chart-card">
+                        <div class="chart-header">
+                            <h3>Returns by Status</h3>
+                            <select id="status-chart-period" class="chart-period-select">
+                                <option value="month">This Month</option>
+                                <option value="quarter">This Quarter</option>
+                                <option value="year">This Year</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="status-chart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card chart-card">
+                        <div class="chart-header">
+                            <h3>Monthly Trend</h3>
+                            <select id="trend-chart-period" class="chart-period-select">
+                                <option value="6">Last 6 Months</option>
+                                <option value="12">Last 12 Months</option>
+                                <option value="24">Last 2 Years</option>
+                            </select>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="trend-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Data Table Section -->
+                <div class="data-section">
+                    <div class="section-header">
+                        <h2>Return Details</h2>
+                        <div class="section-actions">
+                            <button class="btn btn-excel" id="export-excel">
+                                <i data-lucide="file-spreadsheet"></i>
+                                Export to Excel (Raw Data)
+                            </button>
+                            <button class="btn btn-primary" id="export-pdf">
+                                <i data-lucide="file-text"></i>
+                                Export to PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Doc No.</th>
+                                        <th>Return Date</th>
+                                        <th>Item Code</th>
+                                        <th>Description</th>
+                                        <th>Total Value</th>
+                                        <th>Refundable</th>
+                                        <th>Non-Refund</th>
+                                        <th>Shop (3ps)</th>
+                                        <th>P. Center</th>
+                                        <th>P. Officer</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="returns-table-body">
+                                    <!-- Data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="table-footer">
+                            <div class="table-summary">
+                                <span>Showing <span id="showing-count">0</span> of <span id="total-count">0</span> returns</span>
+                            </div>
+                            <div class="table-pagination">
+                                <button class="btn-icon" id="prev-page" disabled>
+                                    <i data-lucide="chevron-left"></i>
+                                </button>
+                                <span class="page-info">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+                                <button class="btn-icon" id="next-page" disabled>
+                                    <i data-lucide="chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Toast container -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <!-- External libraries -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <!-- SheetJS for Raw Data Export to Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- App Application Script -->
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgZXx3pGXIFiN06_c_ZiB-Pi8j6RUtebs",
+            authDomain: "wickreturntracking.firebaseapp.com",
+            databaseURL: "https://wickreturntracking-default-rtdb.firebaseio.com",
+            projectId: "wickreturntracking",
+            storageBucket: "wickreturntracking.firebasestorage.app",
+            messagingSenderId: "917407325282",
+            appId: "1:917407325282:web:9e0f9dc199c286de0a853b",
+            measurementId: "G-DKSLDB8XK5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        class ReturnsAnalyticsDashboard {
+            constructor() {
+                this.data = {
+                    products: [],
+                    stores: [],
+                    purchasingCenters: [],
+                    purchasingOfficers: [],
+                    productReturns: [],
+                    shop3ps: []
+                };
+                
+                this.currentFilters = {
+                    dateFrom: '',
+                    dateTo: '',
+                    status: '',
+                    storeId: '',
+                    shop3psText: '',
+                    centerId: '',
+                    officerId: ''
+                };
+                
+                this.currentPage = 1;
+                this.itemsPerPage = 10;
+                
+                this.charts = {
+                    statusChart: null,
+                    trendChart: null
+                };
+                
+                this.initializeApp();
+            }
+            
+            async initializeApp() {
+                await this.loadData();
+                this.initializeUI();
+                this.setupFilters();
+                this.setupEventListeners();
+                this.updateDashboard();
+                this.showMainApp();
+            }
+            
+            async loadData() {
+                try {
+                    const promises = [
+                        this.fetchData('products'),
+                        this.fetchData('stores'),
+                        this.fetchData('purchasingCenters'),
+                        this.fetchData('purchasingOfficers'),
+                        this.fetchData('productReturns')
+                    ];
+                    
+                    const shop3psPromise = this.fetchDataWithFallback('shop3ps', []);
+                    const results = await Promise.all([...promises, shop3psPromise]);
+                    
+                    this.data = {
+                        products: results[0],
+                        stores: results[1],
+                        purchasingCenters: results[2],
+                        purchasingOfficers: results[3],
+                        productReturns: results[4],
+                        shop3ps: results[5] || []
+                    };
+                    
+                    this.populateFilterOptions();
+                    
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                    this.showToast('Error loading data. Please refresh the page.', 'error');
+                }
+            }
+            
+            async fetchData(path) {
+                const snapshot = await database.ref(path).once('value');
+                const data = snapshot.val() || {};
+                return Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+            }
+            
+            async fetchDataWithFallback(path, fallbackValue = []) {
+                try {
+                    const snapshot = await database.ref(path).once('value');
+                    const data = snapshot.val() || {};
+                    return Object.keys(data).map(key => ({
+                        id: key,
+                        ...data[key]
+                    }));
+                } catch (error) {
+                    console.warn(`Could not load data from ${path}:`, error.message);
+                    return fallbackValue;
+                }
+            }
+            
+            initializeUI() {
+                lucide.createIcons();
+                
+                const today = new Date();
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                document.getElementById('filter-date-from').value = thirtyDaysAgo.toISOString().split('T')[0];
+                document.getElementById('filter-date-to').value = today.toISOString().split('T')[0];
+                
+                this.currentFilters.dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
+                this.currentFilters.dateTo = today.toISOString().split('T')[0];
+            }
+            
+            setupFilters() {
+                document.getElementById('filter-date-from').addEventListener('change', (e) => {
+                    this.currentFilters.dateFrom = e.target.value;
+                    this.applyFilters();
+                });
+                
+                document.getElementById('filter-date-to').addEventListener('change', (e) => {
+                    this.currentFilters.dateTo = e.target.value;
+                    this.applyFilters();
+                });
+                
+                document.getElementById('filter-status').addEventListener('change', (e) => {
+                    this.currentFilters.status = e.target.value;
+                    this.applyFilters();
+                });
+                
+                document.getElementById('filter-store').addEventListener('change', (e) => {
+                    this.currentFilters.storeId = e.target.value;
+                    this.applyFilters();
+                });
+                
+                const shop3psInput = document.getElementById('filter-shop3ps-text');
+                if (shop3psInput) {
+                    shop3psInput.addEventListener('input', (e) => {
+                        this.currentFilters.shop3psText = e.target.value.trim();
+                        this.applyFilters();
+                    });
+                }
+                
+                document.getElementById('filter-center').addEventListener('change', (e) => {
+                    this.currentFilters.centerId = e.target.value;
+                    this.applyFilters();
+                });
+                
+                document.getElementById('filter-officer').addEventListener('change', (e) => {
+                    this.currentFilters.officerId = e.target.value;
+                    this.applyFilters();
+                });
+            }
+            
+            setupEventListeners() {
+                document.getElementById('refresh-data').addEventListener('click', async () => {
+                    await this.loadData();
+                    this.updateDashboard();
+                    this.showToast('Data refreshed successfully', 'success');
+                });
+                
+                document.getElementById('apply-filters').addEventListener('click', () => {
+                    this.applyFilters();
+                });
+                
+                document.getElementById('clear-filters').addEventListener('click', () => {
+                    this.clearFilters();
+                });
+                
+                document.getElementById('export-pdf').addEventListener('click', () => {
+                    this.exportToPDF();
+                });
+
+                document.getElementById('export-excel').addEventListener('click', () => {
+                    this.exportToExcel();
+                });
+                
+                document.getElementById('prev-page').addEventListener('click', () => {
+                    if (this.currentPage > 1) {
+                        this.currentPage--;
+                        this.updateTable();
+                    }
+                });
+                
+                document.getElementById('next-page').addEventListener('click', () => {
+                    const totalPages = Math.ceil(this.getFilteredReturns().length / this.itemsPerPage);
+                    if (this.currentPage < totalPages) {
+                        this.currentPage++;
+                        this.updateTable();
+                    }
+                });
+                
+                document.getElementById('status-chart-period').addEventListener('change', () => {
+                    this.updateStatusChart();
+                });
+                
+                document.getElementById('trend-chart-period').addEventListener('change', () => {
+                    this.updateTrendChart();
+                });
+            }
+            
+            populateFilterOptions() {
+                const storeSelect = document.getElementById('filter-store');
+                const centerSelect = document.getElementById('filter-center');
+                const officerSelect = document.getElementById('filter-officer');
+                
+                while (storeSelect.options.length > 1) storeSelect.remove(1);
+                while (centerSelect.options.length > 1) centerSelect.remove(1);
+                while (officerSelect.options.length > 1) officerSelect.remove(1);
+                
+                this.data.stores
+                    .filter(store => store.status === 'active')
+                    .forEach(store => {
+                        const option = document.createElement('option');
+                        option.value = store.id;
+                        option.textContent = `${store.name} (${store.code})`;
+                        storeSelect.appendChild(option);
+                    });
+                
+                this.data.purchasingCenters
+                    .filter(center => center.status === 'active')
+                    .forEach(center => {
+                        const option = document.createElement('option');
+                        option.value = center.id;
+                        option.textContent = `${center.name} (${center.code})`;
+                        centerSelect.appendChild(option);
+                    });
+                
+                this.data.purchasingOfficers
+                    .filter(officer => officer.status === 'active')
+                    .forEach(officer => {
+                        const option = document.createElement('option');
+                        option.value = officer.id;
+                        option.textContent = `${officer.name} (${officer.code})`;
+                        officerSelect.appendChild(option);
+                    });
+            }
+            
+            getFilteredReturns() {
+                let returns = this.data.productReturns || [];
+                
+                if (this.currentFilters.dateFrom) {
+                    const fromDate = new Date(this.currentFilters.dateFrom);
+                    returns = returns.filter(r => new Date(r.returnDate) >= fromDate);
+                }
+                
+                if (this.currentFilters.dateTo) {
+                    const toDate = new Date(this.currentFilters.dateTo);
+                    returns = returns.filter(r => new Date(r.returnDate) <= toDate);
+                }
+                
+                if (this.currentFilters.status) {
+                    returns = returns.filter(r => r.status === this.currentFilters.status);
+                }
+                
+                if (this.currentFilters.storeId) {
+                    returns = returns.filter(r => r.storeId === this.currentFilters.storeId);
+                }
+                
+                if (this.currentFilters.shop3psText) {
+                    const searchText = this.currentFilters.shop3psText.toLowerCase();
+                    returns = returns.filter(r => {
+                        const shopValue = r.shop3ps || '';
+                        if (this.data.shop3ps && this.data.shop3ps.length > 0) {
+                            const shop = this.data.shop3ps.find(s => s.id === r.shop3ps);
+                            if (shop) {
+                                const shopName = (shop.name || '').toLowerCase();
+                                const shopCode = (shop.code || '').toLowerCase();
+                                return shopName.includes(searchText) || 
+                                       shopCode.includes(searchText) || 
+                                       shopValue.toLowerCase().includes(searchText);
+                            }
+                        }
+                        return shopValue.toLowerCase().includes(searchText);
+                    });
+                }
+                
+                if (this.currentFilters.centerId) {
+                    returns = returns.filter(r => r.purchasingCenterId === this.currentFilters.centerId);
+                }
+                
+                if (this.currentFilters.officerId) {
+                    returns = returns.filter(r => r.purchasingOfficerId === this.currentFilters.officerId);
+                }
+                
+                return returns.sort((a, b) => {
+                    const getDocNumber = (doc) => {
+                        if (!doc.returnId) return 0;
+                        const match = doc.returnId.match(/\d+/);
+                        return match ? parseInt(match[0]) : 0;
+                    };
+                    return getDocNumber(b) - getDocNumber(a);
+                });
+            }
+            
+            applyFilters() {
+                this.currentPage = 1;
+                this.updateDashboard();
+                this.showToast('Filters applied successfully', 'success');
+            }
+            
+            clearFilters() {
+                const today = new Date();
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(today.getDate() - 30);
+                
+                document.getElementById('filter-date-from').value = thirtyDaysAgo.toISOString().split('T')[0];
+                document.getElementById('filter-date-to').value = today.toISOString().split('T')[0];
+                document.getElementById('filter-status').value = '';
+                document.getElementById('filter-store').value = '';
+                
+                const shop3psInput = document.getElementById('filter-shop3ps-text');
+                if (shop3psInput) shop3psInput.value = '';
+                
+                document.getElementById('filter-center').value = '';
+                document.getElementById('filter-officer').value = '';
+                
+                this.currentFilters = {
+                    dateFrom: thirtyDaysAgo.toISOString().split('T')[0],
+                    dateTo: today.toISOString().split('T')[0],
+                    status: '',
+                    storeId: '',
+                    shop3psText: '',
+                    centerId: '',
+                    officerId: ''
+                };
+                
+                this.currentPage = 1;
+                this.updateDashboard();
+                this.showToast('Filters cleared successfully', 'success');
+            }
+            
+            updateDashboard() {
+                this.updateKPICards();
+                this.updateTable();
+                this.updateCharts();
+            }
+            
+            updateKPICards() {
+                const filteredReturns = this.getFilteredReturns();
+                
+                const totalReturnValue = filteredReturns.reduce((sum, r) => sum + (r.totalReturnValue || 0), 0);
+                const totalRefundableValue = filteredReturns.reduce((sum, r) => sum + (r.refundableValue || 0), 0);
+                const totalNonRefundableValue = filteredReturns.reduce((sum, r) => sum + (r.nonUsableValue || 0), 0);
+                
+                document.getElementById('total-return-value').textContent = `$${totalReturnValue.toFixed(2)}`;
+                document.getElementById('refundable-value').textContent = `$${totalRefundableValue.toFixed(2)}`;
+                document.getElementById('non-refundable-value').textContent = `$${totalNonRefundableValue.toFixed(2)}`;
+                document.getElementById('total-returns').textContent = filteredReturns.length;
+            }
+            
+            updateTable() {
+                const filteredReturns = this.getFilteredReturns();
+                const tableBody = document.getElementById('returns-table-body');
+                const totalPages = Math.ceil(filteredReturns.length / this.itemsPerPage) || 1;
+                
+                document.getElementById('current-page').textContent = this.currentPage;
+                document.getElementById('total-pages').textContent = totalPages;
+                document.getElementById('showing-count').textContent = Math.min(filteredReturns.length, this.itemsPerPage);
+                document.getElementById('total-count').textContent = filteredReturns.length;
+                
+                document.getElementById('prev-page').disabled = this.currentPage === 1;
+                document.getElementById('next-page').disabled = this.currentPage === totalPages;
+                
+                const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+                const paginatedReturns = filteredReturns.slice(startIndex, startIndex + this.itemsPerPage);
+                
+                tableBody.innerHTML = '';
+                
+                if (paginatedReturns.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="12" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                                <i data-lucide="package" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                <p>No returns found with current filters</p>
+                            </td>
+                        </tr>
+                    `;
+                    lucide.createIcons();
+                    return;
+                }
+                
+                paginatedReturns.forEach(returnItem => {
+                    const product = this.data.products.find(p => p.id === returnItem.productId);
+                    const store = this.data.stores.find(s => s.id === returnItem.storeId);
+                    const shop3ps = this.data.shop3ps && this.data.shop3ps.length > 0 ? 
+                        this.data.shop3ps.find(s => s.id === returnItem.shop3ps) : null;
+                    const center = this.data.purchasingCenters.find(c => c.id === returnItem.purchasingCenterId);
+                    const officer = this.data.purchasingOfficers.find(o => o.id === returnItem.purchasingOfficerId);
+                    const statusClass = returnItem.status ? `badge-${returnItem.status}` : 'badge-pending';
+                    const statusText = returnItem.status ? returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) : 'Pending';
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><span class="mono">${returnItem.returnId || 'N/A'}</span></td>
+                        <td>${returnItem.returnDate ? new Date(returnItem.returnDate).toLocaleDateString() : 'N/A'}</td>
+                        <td><span class="mono">${product?.code || 'Unknown'}</span></td>
+                        <td>${product?.description || 'Unknown'}</td>
+                        <td><strong>$${(returnItem.totalReturnValue || 0).toFixed(2)}</strong></td>
+                        <td><span class="text-success">$${(returnItem.refundableValue || 0).toFixed(2)}</span></td>
+                        <td><span class="text-destructive">$${(returnItem.nonUsableValue || 0).toFixed(2)}</span></td>
+                        <td>${shop3ps ? (shop3ps.name || shop3ps.code || 'N/A') : (returnItem.shop3ps || 'N/A')}</td>
+                        <td>${center?.name || 'Unknown'}</td>
+                        <td>${officer?.name || 'Unknown'}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>
+                            <button class="btn-icon view-details" data-id="${returnItem.id}" title="View Details">
+                                <i data-lucide="eye"></i>
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                this.attachViewDetailsListeners();
+                lucide.createIcons();
+            }
+            
+            attachViewDetailsListeners() {
+                document.querySelectorAll('.view-details').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const returnId = e.currentTarget.dataset.id;
+                        const returnItem = this.data.productReturns.find(r => r.id === returnId);
+                        if (returnItem) {
+                            this.showReturnDetails(returnItem);
+                        }
+                    });
+                });
+            }
+            
+            showReturnDetails(returnItem) {
+                const product = this.data.products.find(p => p.id === returnItem.productId);
+                const store = this.data.stores.find(s => s.id === returnItem.storeId);
+                const shop3ps = this.data.shop3ps && this.data.shop3ps.length > 0 ? 
+                    this.data.shop3ps.find(s => s.id === returnItem.shop3ps) : null;
+                const center = this.data.purchasingCenters.find(c => c.id === returnItem.purchasingCenterId);
+                const officer = this.data.purchasingOfficers.find(o => o.id === returnItem.purchasingOfficerId);
+                
+                const statusClass = returnItem.status ? `badge-${returnItem.status}` : 'badge-pending';
+                const statusText = returnItem.status ? returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) : 'Pending';
+                
+                const detailsHtml = `
+                    <div class="return-details-modal">
+                        <div class="details-header">
+                            <div class="doc-info">
+                                <h3>Return Document Details</h3>
+                                <div class="doc-id">${returnItem.returnId || 'N/A'}</div>
+                            </div>
+                            <div class="status-badge">
+                                <span class="badge ${statusClass}">${statusText}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="details-grid">
+                            <div class="details-section">
+                                <h4><i data-lucide="calendar"></i> Date Information</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Return Date:</span>
+                                    <span class="detail-value">${returnItem.returnDate ? new Date(returnItem.returnDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Purchase Date:</span>
+                                    <span class="detail-value">${returnItem.purchaseDate ? new Date(returnItem.purchaseDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="details-section">
+                                <h4><i data-lucide="package"></i> Product Information</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Item Code:</span>
+                                    <span class="detail-value mono">${product?.code || 'Unknown'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Description:</span>
+                                    <span class="detail-value">${product?.description || 'Unknown'}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Unit:</span>
+                                    <span class="detail-value">${product?.unit || '-'}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="details-section">
+                                <h4><i data-lucide="store"></i> Store Information</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Store:</span>
+                                    <span class="detail-value">${store?.name || 'Unknown'} (${store?.code || 'N/A'})</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Shop (3ps):</span>
+                                    <span class="detail-value">${shop3ps ? (shop3ps.name || shop3ps.code || 'N/A') : (returnItem.shop3ps || 'N/A')}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="details-section">
+                                <h4><i data-lucide="building-2"></i> Purchasing Information</h4>
+                                <div class="detail-row">
+                                    <span class="detail-label">Purchasing Center:</span>
+                                    <span class="detail-value">${center?.name || 'Unknown'} (${center?.code || 'N/A'})</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Purchasing Officer:</span>
+                                    <span class="detail-value">${officer?.name || 'Unknown'} (${officer?.code || 'N/A'})</span>
+                                </div>
+                            </div>
+                            
+                            <div class="details-section full-width">
+                                <h4><i data-lucide="dollar-sign"></i> Financial Details</h4>
+                                <div class="financial-grid">
+                                    <div class="financial-card">
+                                        <div class="financial-label">Quantity Details</div>
+                                        <div class="financial-row"><span>Return Quantity:</span><strong>${returnItem.quantity || 0}</strong></div>
+                                        <div class="financial-row"><span>Non-Usable Quantity:</span><strong class="text-destructive">${returnItem.nonUsableQuantity || 0}</strong></div>
+                                    </div>
+                                    <div class="financial-card">
+                                        <div class="financial-label">Price Details</div>
+                                        <div class="financial-row"><span>Unit Price:</span><strong>$${(returnItem.pricePerUnit || 0).toFixed(2)}</strong></div>
+                                        <div class="financial-row"><span>Total Value:</span><strong>$${(returnItem.totalReturnValue || 0).toFixed(2)}</strong></div>
+                                    </div>
+                                    <div class="financial-card">
+                                        <div class="financial-label">Refund Calculation</div>
+                                        <div class="financial-row"><span>Refundable Value:</span><strong class="text-success">$${(returnItem.refundableValue || 0).toFixed(2)}</strong></div>
+                                        <div class="financial-row"><span>Non-Refundable Value:</span><strong class="text-destructive">$${(returnItem.nonUsableValue || 0).toFixed(2)}</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="details-actions">
+                            <button class="btn btn-outline" id="close-details"><i data-lucide="x"></i> Close</button>
+                        </div>
+                    </div>
+                `;
+                
+                const modal = this.showModal(`Return Details - ${returnItem.returnId}`, detailsHtml);
+                modal.querySelector('#close-details').addEventListener('click', () => this.closeModal(modal));
+            }
+
+            showModal(title, content) {
+                const container = document.getElementById('modal-container') || this.createModalContainer();
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h3>${title}</h3>
+                            <button class="modal-close"><i data-lucide="x"></i></button>
+                        </div>
+                        <div class="modal-body">${content}</div>
+                    </div>
+                `;
+                
+                container.appendChild(modal);
+                modal.querySelector('.modal-close').addEventListener('click', () => this.closeModal(modal));
+                modal.addEventListener('click', (e) => { if (e.target === modal) this.closeModal(modal); });
+                setTimeout(() => lucide.createIcons(), 100);
+                return modal;
+            }
+            
+            createModalContainer() {
+                const container = document.createElement('div');
+                container.id = 'modal-container';
+                document.body.appendChild(container);
+                return container;
+            }
+            
+            closeModal(modal) {
+                if (modal && modal.parentNode) modal.remove();
+            }
+            
+            updateCharts() {
+                this.updateStatusChart();
+                this.updateTrendChart();
+            }
+            
+            updateStatusChart() {
+                const filteredReturns = this.getFilteredReturns();
+                const period = document.getElementById('status-chart-period').value;
+                
+                let returns = filteredReturns;
+                if (period === 'month') {
+                    const oneMonthAgo = new Date();
+                    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+                    returns = returns.filter(r => new Date(r.returnDate) >= oneMonthAgo);
+                } else if (period === 'quarter') {
+                    const threeMonthsAgo = new Date();
+                    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+                    returns = returns.filter(r => new Date(r.returnDate) >= threeMonthsAgo);
+                } else if (period === 'year') {
+                    const oneYearAgo = new Date();
+                    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+                    returns = returns.filter(r => new Date(r.returnDate) >= oneYearAgo);
+                }
+                
+                const statusCounts = { pending: 0, approved: 0, rejected: 0, completed: 0 };
+                returns.forEach(r => {
+                    const status = r.status || 'pending';
+                    if (statusCounts[status] !== undefined) statusCounts[status]++;
+                });
+                
+                const ctx = document.getElementById('status-chart').getContext('2d');
+                if (this.charts.statusChart) this.charts.statusChart.destroy();
+                
+                this.charts.statusChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pending', 'Approved', 'Rejected', 'Completed'],
+                        datasets: [{
+                            data: [statusCounts.pending, statusCounts.approved, statusCounts.rejected, statusCounts.completed],
+                            backgroundColor: ['rgb(251, 191, 36)', 'rgb(34, 197, 94)', 'rgb(239, 68, 68)', 'rgb(59, 130, 246)'],
+                            borderWidth: 2,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right' } },
+                        cutout: '65%'
+                    }
+                });
+            }
+            
+            updateTrendChart() {
+                const filteredReturns = this.getFilteredReturns();
+                const period = parseInt(document.getElementById('trend-chart-period').value);
+                
+                const monthlyData = {};
+                const today = new Date();
+                const startDate = new Date();
+                startDate.setMonth(today.getMonth() - period);
+                
+                for (let i = 0; i < period; i++) {
+                    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                    const key = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                    monthlyData[key] = { totalValue: 0, refundableValue: 0, nonRefundableValue: 0, count: 0 };
+                }
+                
+                filteredReturns.forEach(returnItem => {
+                    const returnDate = new Date(returnItem.returnDate);
+                    if (returnDate >= startDate) {
+                        const key = returnDate.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+                        if (monthlyData[key]) {
+                            monthlyData[key].totalValue += returnItem.totalReturnValue || 0;
+                            monthlyData[key].refundableValue += returnItem.refundableValue || 0;
+                            monthlyData[key].nonRefundableValue += returnItem.nonUsableValue || 0;
+                            monthlyData[key].count++;
+                        }
+                    }
+                });
+                
+                const sortedMonths = Object.keys(monthlyData).sort((a, b) => new Date('1 ' + a) - new Date('1 ' + b));
+                const ctx = document.getElementById('trend-chart').getContext('2d');
+                if (this.charts.trendChart) this.charts.trendChart.destroy();
+                
+                this.charts.trendChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: sortedMonths,
+                        datasets: [
+                            { label: 'Total Value', data: sortedMonths.map(m => monthlyData[m].totalValue), borderColor: 'rgb(59, 130, 246)', tension: 0.4 },
+                            { label: 'Refundable', data: sortedMonths.map(m => monthlyData[m].refundableValue), borderColor: 'rgb(34, 197, 94)', tension: 0.4 },
+                            { label: 'Non-Refundable', data: sortedMonths.map(m => monthlyData[m].nonRefundableValue), borderColor: 'rgb(239, 68, 68)', tension: 0.4 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            /**
+             * EXPORT TO EXCEL FEATURE
+             * Extracts all dynamic attributes & complete raw database fields for selected filter period
+             */
+            exportToExcel() {
+                const filteredReturns = this.getFilteredReturns();
+                
+                if (filteredReturns.length === 0) {
+                    this.showToast('No data available to export for selected period.', 'warning');
+                    return;
+                }
+
+                // Map raw JSON items to mapped Excel Rows containing all base fields & lookup metadata
+                const excelData = filteredReturns.map(item => {
+                    const product = this.data.products.find(p => p.id === item.productId);
+                    const store = this.data.stores.find(s => s.id === item.storeId);
+                    const shop3ps = this.data.shop3ps && this.data.shop3ps.length > 0 ? 
+                        this.data.shop3ps.find(s => s.id === item.shop3ps) : null;
+                    const center = this.data.purchasingCenters.find(c => c.id === item.purchasingCenterId);
+                    const officer = this.data.purchasingOfficers.find(o => o.id === item.purchasingOfficerId);
+
+                    return {
+                        
+                        "Return Doc ID": item.returnId || '',
+                        "Return Date": item.returnDate || '',
+                        "Purchase Date": item.purchaseDate || '',
+                        "Status": item.status || '',
+                        "Product Code": product?.code || '',
+                        "Product Description": product?.description || '',
+                        "Product Unit": product?.unit || '',
+                        "Quantity": item.quantity || 0,
+                        "Non-Usable Quantity": item.nonUsableQuantity || 0,
+                        "Refundable Quantity": item.refundableQuantity || 0,
+                        "Price Per Unit": item.pricePerUnit || 0,
+                        "Total Return Value": item.totalReturnValue || 0,
+                        "Refundable Value": item.refundableValue || 0,
+                        "Non-Usable Value": item.nonUsableValue || 0,
+                        "Value Difference": item.valueDifference || 0,
+                        "Is Refundable": item.isRefundable ? 'YES' : 'NO',
+                        "Store Code": store?.code || '',
+                        "Store Name": store?.name || '',
+                        "Shop 3PS ID / Code": item.shop3ps || '',
+                        "Shop 3PS Name": shop3ps?.name || shop3ps?.code || item.shop3ps || '',
+                        "Purchasing Center Code": center?.code || '',
+                        "Purchasing Center Name": center?.name || '',
+                        "Purchasing Officer Code": officer?.code || '',
+                        "Purchasing Officer Name": officer?.name || '',
+                        "Reason": item.reason || '',
+                        "Created At": item.createdAt || '',
+                        "Updated At": item.updatedAt || ''
+                    };
+                });
+
+                // Generate worksheet & workbook using SheetJS
+                const worksheet = XLSX.utils.json_to_sheet(excelData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Raw Returns Data");
+
+                // Auto-adjust column widths for optimal reading
+                const max_widths = Object.keys(excelData[0]).map(key => ({
+                    wch: Math.max(key.length, 12)
+                }));
+                worksheet['!cols'] = max_widths;
+
+                // Download spreadsheet
+                const dateFrom = this.currentFilters.dateFrom || 'Start';
+                const dateTo = this.currentFilters.dateTo || 'End';
+                const filename = `Returns_Raw_Data_${dateFrom}_to_${dateTo}.xlsx`;
+
+                XLSX.writeFile(workbook, filename);
+                this.showToast('Raw data exported to Excel successfully!', 'success');
+            }
+            
+            exportToPDF() {
+                const filteredReturns = this.getFilteredReturns();
+                if (filteredReturns.length === 0) {
+                    this.showToast('No data to export', 'warning');
+                    return;
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('l', 'mm', 'a4');
+                doc.text('RETURNS ANALYTICS REPORT', 148.5, 20, { align: 'center' });
+                
+                const tableData = filteredReturns.map(r => [
+                    r.returnId || '',
+                    r.returnDate || '',
+                    r.quantity || 0,
+                    `$${(r.totalReturnValue || 0).toFixed(2)}`,
+                    `$${(r.refundableValue || 0).toFixed(2)}`,
+                    r.status || 'Pending'
+                ]);
+                
+                doc.autoTable({
+                    startY: 30,
+                    head: [['Doc No.', 'Date', 'Qty', 'Total Value', 'Refundable', 'Status']],
+                    body: tableData
+                });
+                
+                doc.save(`Returns_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+                this.showToast('PDF exported successfully', 'success');
+            }
+            
+            showToast(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}"></i><span>${message}</span>`;
+                container.appendChild(toast);
+                lucide.createIcons();
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            }
+            
+            showMainApp() {
+                setTimeout(() => {
+                    document.getElementById('loading-screen').classList.add('hidden');
+                    document.getElementById('main-layout').classList.remove('hidden');
+                }, 500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.dashboard = new ReturnsAnalyticsDashboard();
+        });
+    </script>
+</body>
+</html>

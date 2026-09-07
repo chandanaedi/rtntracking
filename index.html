@@ -496,7 +496,7 @@ Ret Doc No: (${retDocNo})`;
                 nonUsableValue: nonQty * price,
                 refundableValue: Math.max(0, qty - nonQty) * price,
                 shop3ps: document.getElementById('shop3ps').value,
-                reasonForReturn: document.getElementById('reasonForReturn').value,
+                reason: document.getElementById('reasonForReturn').value,
                 status: 'pending',
                 createdAt: new Date().toISOString()
             };

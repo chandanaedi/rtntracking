@@ -31,7 +31,6 @@
             color: hsl(var(--foreground));
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 16px;
@@ -62,7 +61,6 @@
             font-size: 13px;
             color: hsl(var(--muted-foreground));
             margin-top: 4px;
-            line-height: 1.4;
         }
 
         .form-grid {
@@ -166,13 +164,6 @@
             gap: 8px;
         }
 
-        .footer-attribution {
-            text-align: center;
-            font-size: 11px;
-            color: hsl(var(--muted-foreground));
-            margin-top: 16px;
-        }
-
         .toast {
             position: fixed;
             top: 20px;
@@ -200,7 +191,7 @@
     <div class="entry-card">
         <div class="header">
             <h1>New Return Entry</h1>
-            <p>Log incoming returns directly to Web App<br>Managed by Purchasing Division</p>
+            <p>Log incoming returns directly to Firebase</p>
         </div>
 
         <form id="return-form">
@@ -211,8 +202,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Date <span class="required">*</span></label>
+                    <label>Return Date <span class="required">*</span></label>
                     <input type="date" id="returnDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Purchase Date <span class="required">*</span></label>
+                    <input type="date" id="purchaseDate" required>
                 </div>
 
                 <div class="form-group">
@@ -294,11 +290,6 @@
         </form>
     </div>
 
-    <!-- Footer Attribution -->
-    <div class="footer-attribution">
-        Developed by: Chandana Edirisinghe
-    </div>
-
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -320,8 +311,10 @@
         const db = firebase.database();
         firebase.auth().signInAnonymously().catch(console.error);
 
-        // Set Today's Date by Default
-        document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+        // Set Today's Date by Default for Return & Purchase Date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('returnDate').value = today;
+        document.getElementById('purchaseDate').value = today;
 
         // Fetch Dropdown Data from Firebase
         function loadDropdowns() {
@@ -395,6 +388,7 @@
             const record = {
                 returnId: document.getElementById('returnId').value,
                 returnDate: document.getElementById('returnDate').value,
+                purchaseDate: document.getElementById('purchaseDate').value,
                 productId: document.getElementById('productId').value,
                 storeId: document.getElementById('storeId').value,
                 purchasingCenterId: document.getElementById('purchasingCenterId').value,
@@ -420,7 +414,8 @@
 
             // Reset Form & Generate Next Doc ID
             e.target.reset();
-            document.getElementById('returnDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('returnDate').value = today;
+            document.getElementById('purchaseDate').value = today;
             updateTotals();
             generateReturnId();
         });

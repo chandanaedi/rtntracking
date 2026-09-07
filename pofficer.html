@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Purchasing Officer Portal</title>
+    <title>Return Data Entry</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/lucide@latest/dist/lucide.css" rel="stylesheet">
     <style>
@@ -16,8 +16,7 @@
             --border: 220 13% 91%;
             --radius: 0.75rem;
             --success: 142 76% 36%;
-            --warning-bg: 38 92% 95%;
-            --warning-fg: 38 92% 30%;
+            --whatsapp: 142 70% 45%;
         }
 
         * {
@@ -33,64 +32,66 @@
             color: hsl(var(--foreground));
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            justify-content: flex-start;
             padding: 16px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-        }
-
-        /* Card Setup */
-        .card {
+        .entry-card {
             background: hsl(var(--card));
             border-radius: var(--radius);
             border: 1px solid hsl(var(--border));
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 580px;
             padding: 24px;
-            margin-bottom: 16px;
         }
 
         .header {
             margin-bottom: 20px;
             border-bottom: 1px solid hsl(var(--border));
             padding-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
         }
 
-        .header-text h1 {
+        .header h1 {
             font-size: 20px;
             font-weight: 700;
         }
 
-        .header-text p {
+        .header p {
             font-size: 13px;
             color: hsl(var(--muted-foreground));
             margin-top: 4px;
         }
 
-        .change-officer-btn {
-            background: transparent;
-            border: 1px solid hsl(var(--border));
-            padding: 6px 12px;
-            border-radius: calc(var(--radius) - 2px);
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            color: hsl(var(--primary));
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
         }
 
-        /* Form Controls */
+        @media (min-width: 480px) {
+            .form-grid.two-col {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 6px;
-            margin-bottom: 16px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: hsl(var(--foreground));
+            margin-top: 8px;
+            margin-bottom: -4px;
         }
 
         label {
@@ -98,7 +99,11 @@
             font-weight: 600;
         }
 
-        select, input, textarea {
+        .required {
+            color: #ef4444;
+        }
+
+        input, select, textarea {
             width: 100%;
             padding: 12px;
             border: 1px solid hsl(var(--border));
@@ -108,28 +113,46 @@
             font-family: inherit;
         }
 
-        /* Checkbox styling */
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 12px;
-            background: white;
-            border: 1px solid hsl(var(--border));
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        input[readonly] {
+            background-color: hsl(var(--background));
+            color: hsl(var(--muted-foreground));
+            font-family: monospace;
+        }
+
+        /* Calculated Summary Section */
+        .summary-box {
+            grid-column: 1 / -1;
+            background: hsl(var(--background));
             border-radius: calc(var(--radius) - 2px);
-            cursor: pointer;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            border: 1px dashed hsl(var(--border));
+            margin-top: 4px;
         }
 
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
+        .summary-item label {
+            font-size: 11px;
+            color: hsl(var(--muted-foreground));
+            display: block;
         }
 
-        .checkbox-group label {
-            cursor: pointer;
-            font-size: 14px;
-            user-select: none;
+        .summary-item span {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
         }
 
         .btn {
@@ -137,7 +160,7 @@
             padding: 14px;
             border-radius: calc(var(--radius) - 2px);
             font-weight: 600;
-            font-size: 16px;
+            font-size: 15px;
             background: hsl(var(--primary));
             color: white;
             border: none;
@@ -148,133 +171,14 @@
             gap: 8px;
         }
 
-        /* List Items */
-        .return-card {
-            background: hsl(var(--card));
-            border-radius: var(--radius);
-            border: 1px solid hsl(var(--border));
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-            padding: 16px;
-            margin-bottom: 16px;
+        .btn-whatsapp {
+            background: #25D366;
+            color: white;
         }
 
-        .return-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
-            border-bottom: 1px dashed hsl(var(--border));
-        }
-
-        .doc-badge {
-            font-weight: 700;
-            font-size: 14px;
-            color: hsl(var(--foreground));
-        }
-
-        .status-badge {
-            background-color: hsl(var(--warning-bg));
-            color: hsl(var(--warning-fg));
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 8px;
-            border-radius: 12px;
-            text-transform: uppercase;
-        }
-
-        .return-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px 12px;
-            font-size: 13px;
-            margin-bottom: 16px;
-        }
-
-        .detail-item span {
-            color: hsl(var(--muted-foreground));
-            display: block;
-            font-size: 11px;
-        }
-
-        .detail-item strong {
-            color: hsl(var(--foreground));
-            font-weight: 600;
-        }
-
-        .detail-item.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .reason-box {
-            background: hsl(var(--background));
-            padding: 10px;
-            border-radius: calc(var(--radius) - 4px);
-            font-size: 13px;
-            color: hsl(var(--foreground));
-            border-left: 3px solid hsl(var(--primary));
-        }
-
-        /* Action Form Container inside card */
-        .action-form {
-            background: hsl(var(--background));
-            border-radius: calc(var(--radius) - 2px);
-            padding: 12px;
-            border: 1px solid hsl(var(--border));
-        }
-
-        .action-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        @media (max-width: 480px) {
-            .action-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .summary-box {
-            grid-column: 1 / -1;
-            background: white;
-            border-radius: calc(var(--radius) - 4px);
-            padding: 10px;
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-            border: 1px dashed hsl(var(--border));
-            margin: 8px 0;
-        }
-
-        .summary-item label {
-            font-size: 10px;
-            color: hsl(var(--muted-foreground));
-            display: block;
-        }
-
-        .summary-item span {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 16px;
-            color: hsl(var(--muted-foreground));
-        }
-
-        .empty-state i {
-            margin-bottom: 12px;
-            color: hsl(var(--primary));
-        }
-
-        .footer-attribution {
-            text-align: center;
-            font-size: 11px;
-            color: hsl(var(--muted-foreground));
-            margin-top: auto;
-            padding: 16px 0;
+        .btn-copy {
+            background: #64748B;
+            color: white;
         }
 
         .toast {
@@ -298,53 +202,120 @@
 <body>
 
     <div id="toast" class="toast">
-        <i data-lucide="check-circle"></i> Return updated & marked complete!
+        <i data-lucide="check-circle"></i> <span id="toast-text">Return saved successfully!</span>
     </div>
 
-    <div class="container">
-        
-        <!-- STEP 1: SELECT OFFICER PROMPT -->
-        <div id="selection-screen" class="card">
-            <div class="header">
-                <div class="header-text">
-                    <h1>Purchasing Officer Portal</h1>
-                    <p>Select your identity to review pending returns<br>Managed by Purchasing Division</p>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="officer-select">Select Your Name</label>
-                <select id="officer-select">
-                    <option value="">Loading officers...</option>
-                </select>
-            </div>
-
-            <button id="proceed-btn" class="btn">
-                Proceed to Pending Returns <i data-lucide="arrow-right"></i>
-            </button>
+    <div class="entry-card">
+        <div class="header">
+            <h1>New Return Entry</h1>
+            <p>Log incoming returns directly to Firebase</p>
         </div>
 
-        <!-- STEP 2: PENDING RETURNS DASHBOARD -->
-        <div id="dashboard-screen" style="display: none;">
-            <div class="card" style="padding: 16px 20px; margin-bottom: 16px;">
-                <div class="header" style="margin-bottom: 0; padding-bottom: 0; border: none;">
-                    <div class="header-text">
-                        <h1 id="officer-heading">Pending Returns</h1>
-                        <p id="officer-subheading">Pending review entries</p>
+        <form id="return-form">
+            <div class="form-grid two-col">
+                <div class="form-group">
+                    <label>Doc ID</label>
+                    <input type="text" id="returnId" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Return Date <span class="required">*</span></label>
+                    <input type="date" id="returnDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Purchase Date</label>
+                    <input type="date" id="purchaseDate">
+                </div>
+
+                <div class="form-group">
+                    <label>Product <span class="required">*</span></label>
+                    <select id="productId" required>
+                        <option value="">Select Product...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Store / Branch <span class="required">*</span></label>
+                    <select id="storeId" required>
+                        <option value="">Select Store...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Purchasing Center <span class="required">*</span></label>
+                    <select id="purchasingCenterId" required>
+                        <option value="">Select Center...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Purchasing Officer <span class="required">*</span></label>
+                    <select id="purchasingOfficerId" required>
+                        <option value="">Select Officer...</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Return Quantity <span class="required">*</span></label>
+                    <input type="number" step="any" id="quantity" min="0" value="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Non-Usable Quantity</label>
+                    <input type="number" step="any" id="nonUsableQuantity" min="0" value="0">
+                </div>
+
+                <div class="form-group">
+                    <label>Unit Price ($) <span class="required">*</span></label>
+                    <input type="number" step="any" id="pricePerUnit" min="0" value="0.00" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Camp / Shop / 3PS</label>
+                    <input type="text" id="shop3ps" placeholder="e.g. Main St Shop">
+                </div>
+
+                <!-- Additional Information Section -->
+                <div class="form-group full-width">
+                    <div class="section-title">Additional Information</div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label>Reason for Return <span class="required">*</span></label>
+                    <textarea id="reasonForReturn" rows="3" placeholder="Enter specific reason or remarks for this return..." required></textarea>
+                </div>
+
+                <!-- Calculated Values Display -->
+                <div class="summary-box">
+                    <div class="summary-item">
+                        <label>Total Value</label>
+                        <span id="display-total">$0.00</span>
                     </div>
-                    <button class="change-officer-btn" onclick="resetOfficerSelection()">Switch User</button>
+                    <div class="summary-item">
+                        <label>Refundable</label>
+                        <span id="display-refundable" style="color: var(--success);">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Actions Grid -->
+                <div class="form-group full-width">
+                    <div class="btn-group">
+                        <button type="submit" class="btn">
+                            <i data-lucide="send"></i> Submit Return
+                        </button>
+                        
+                        <button type="button" class="btn btn-whatsapp" onclick="shareToWhatsApp()">
+                            <i data-lucide="message-circle"></i> Share to WhatsApp
+                        </button>
+
+                        <button type="button" class="btn btn-copy" onclick="copyFormattedText()">
+                            <i data-lucide="copy"></i> Copy Text Format
+                        </button>
+                    </div>
                 </div>
             </div>
-
-            <div id="returns-list">
-                <!-- Return items dynamically rendered here -->
-            </div>
-        </div>
-
-    </div>
-
-    <div class="footer-attribution">
-        Developed by: Chandana Edirisinghe
+        </form>
     </div>
 
     <!-- Firebase SDKs -->
@@ -368,242 +339,180 @@
         const db = firebase.database();
         firebase.auth().signInAnonymously().catch(console.error);
 
-        let currentOfficerId = null;
-        let currentOfficerName = '';
-        let productsMap = {};
-        let storesMap = {};
-        let purchasingCentersMap = {};
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('returnDate').value = today;
 
-        // Load Lookup Data and Officers
-        async function init() {
-            // Pre-fetch lookups
-            db.ref('products').once('value', snapshot => productsMap = snapshot.val() || {});
-            db.ref('stores').once('value', snapshot => storesMap = snapshot.val() || {});
-            db.ref('purchasingCenters').once('value', snapshot => purchasingCentersMap = snapshot.val() || {});
-
-            // Fetch Officers
+        // Fetch Dropdown Data from Firebase
+        function loadDropdowns() {
+            db.ref('products').once('value', snapshot => {
+                populateSelect('productId', snapshot.val(), 'description');
+            });
+            db.ref('stores').once('value', snapshot => {
+                populateSelect('storeId', snapshot.val(), 'name');
+            });
+            db.ref('purchasingCenters').once('value', snapshot => {
+                populateSelect('purchasingCenterId', snapshot.val(), 'name');
+            });
             db.ref('purchasingOfficers').once('value', snapshot => {
-                const select = document.getElementById('officer-select');
-                select.innerHTML = '<option value="">Choose your name...</option>';
-                const officers = snapshot.val();
-                if (officers) {
-                    Object.keys(officers).forEach(key => {
-                        const opt = document.createElement('option');
-                        opt.value = key;
-                        opt.textContent = officers[key].name || key;
-                        select.appendChild(opt);
-                    });
-                }
+                populateSelect('purchasingOfficerId', snapshot.val(), 'name');
             });
         }
 
-        // Proceed Button Listener
-        document.getElementById('proceed-btn').addEventListener('click', () => {
-            const select = document.getElementById('officer-select');
-            if (!select.value) {
-                alert('Please select your name to proceed.');
-                return;
-            }
-            currentOfficerId = select.value;
-            currentOfficerName = select.options[select.selectedIndex].text;
-
-            document.getElementById('selection-screen').style.display = 'none';
-            document.getElementById('dashboard-screen').style.display = 'block';
-
-            document.getElementById('officer-heading').textContent = currentOfficerName;
-            document.getElementById('officer-subheading').textContent = `Pending Returns assigned to you`;
-
-            loadPendingReturns();
-        });
-
-        function resetOfficerSelection() {
-            currentOfficerId = null;
-            document.getElementById('selection-screen').style.display = 'block';
-            document.getElementById('dashboard-screen').style.display = 'none';
+        function populateSelect(elementId, dataObj, field) {
+            const select = document.getElementById(elementId);
+            if (!dataObj) return;
+            Object.keys(dataObj).forEach(key => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = dataObj[key][field] || key;
+                select.appendChild(opt);
+            });
         }
 
-        // Load Pending Returns for Selected Officer
-        function loadPendingReturns() {
-            const container = document.getElementById('returns-list');
-            container.innerHTML = '<div class="empty-state">Loading assigned returns...</div>';
-
-            db.ref('productReturns')
-              .orderByChild('purchasingOfficerId')
-              .equalTo(currentOfficerId)
-              .on('value', snapshot => {
-                  container.innerHTML = '';
-                  const data = snapshot.val();
-
-                  let pendingCount = 0;
-
-                  if (data) {
-                      Object.keys(data).forEach(key => {
-                          const item = data[key];
-                          // Only display items with 'pending' status
-                          if (item.status === 'pending') {
-                              pendingCount++;
-                              container.appendChild(createReturnCard(key, item));
-                          }
-                      });
-                  }
-
-                  if (pendingCount === 0) {
-                      container.innerHTML = `
-                          <div class="card empty-state">
-                              <i data-lucide="check-circle-2" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
-                              <h3>All Caught Up!</h3>
-                              <p style="font-size: 13px; margin-top: 4px;">No pending returns requiring your response.</p>
-                          </div>
-                      `;
-                      lucide.createIcons();
-                  } else {
-                      lucide.createIcons();
-                  }
-              });
+        function getSelectedText(elementId) {
+            const select = document.getElementById(elementId);
+            if (select.selectedIndex === -1 || !select.value) return "";
+            return select.options[select.selectedIndex].text;
         }
 
-        // Create Individual Return Card Component
-        function createReturnCard(firebaseKey, item) {
-            const card = document.createElement('div');
-            card.className = 'return-card';
-
-            const prodName = productsMap[item.productId] ? productsMap[item.productId].description : item.productId;
-            const storeName = storesMap[item.storeId] ? storesMap[item.storeId].name : item.storeId;
-            const centerName = purchasingCentersMap[item.purchasingCenterId] ? purchasingCentersMap[item.purchasingCenterId].name : item.purchasingCenterId;
-            const isRefundableChecked = item.isRefundable === "YES" || item.isRefundable === true ? 'checked' : '';
-
-            card.innerHTML = `
-                <div class="return-card-header">
-                    <span class="doc-badge">${item.returnId || 'RET-00000'}</span>
-                    <span class="status-badge">Pending</span>
-                </div>
-
-                <div class="return-details">
-                    <div class="detail-item">
-                        <span>Date Logged</span>
-                        <strong>${item.returnDate || '-'}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Purchased Date</span>
-                        <strong>${item.purchaseDate || '-'}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Return Qty</span>
-                        <strong>${item.quantity || 0}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <span>Product</span>
-                        <strong>${prodName || '-'}</strong>
-                    </div>
-                    <div class="detail-item full-width">
-                        <span>Store / Center</span>
-                        <strong>${storeName || '-'} / ${centerName || '-'}</strong>
-                    </div>
-                    <div class="detail-item full-width">
-                        <span>Reason for Return</span>
-                        <div class="reason-box">${item.reasonForReturn || 'No reason specified'}</div>
-                    </div>
-                </div>
-
-                <form class="action-form" onsubmit="submitReturnResponse(event, '${firebaseKey}', ${item.quantity || 0})">
-                    <div class="action-grid">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label>Non-Usable Qty</label>
-                            <input type="number" step="any" min="0" max="${item.quantity || 0}" value="${item.nonUsableQuantity || 0}" class="input-nonusable" oninput="calcCardTotals(this)" required>
-                        </div>
-
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label>Unit Price ($)</label>
-                            <input type="number" step="any" min="0" value="${item.pricePerUnit || 0}" class="input-price" oninput="calcCardTotals(this)" required>
-                        </div>
-
-                        <div class="form-group full-width" style="grid-column: 1 / -1; margin-bottom: 0;">
-                            <label>Shop / 3PS</label>
-                            <input type="text" value="${item.shop3ps || ''}" class="input-shop" placeholder="e.g. Main St Shop">
-                        </div>
-
-                        <div class="form-group full-width" style="grid-column: 1 / -1; margin-bottom: 0;">
-                            <div class="checkbox-group">
-                                <input type="checkbox" id="refundable-${firebaseKey}" class="input-is-refundable" ${isRefundableChecked}>
-                                <label for="refundable-${firebaseKey}">Is Refundable</label>
-                            </div>
-                        </div>
-
-                        <div class="summary-box">
-                            <div class="summary-item">
-                                <label>Total Value</label>
-                                <span class="calc-total">$${((item.quantity || 0) * (item.pricePerUnit || 0)).toFixed(2)}</span>
-                            </div>
-                            <div class="summary-item">
-                                <label>Refundable</label>
-                                <span class="calc-refundable" style="color: var(--success);">$${(Math.max(0, (item.quantity || 0) - (item.nonUsableQuantity || 0)) * (item.pricePerUnit || 0)).toFixed(2)}</span>
-                            </div>
-                        </div>
-
-                        <button type="submit" class="btn" style="grid-column: 1 / -1; margin-top: 4px;">
-                            <i data-lucide="check"></i> Submit & Mark Complete
-                        </button>
-                    </div>
-                </form>
-            `;
-            return card;
-        }
-
-        // Auto-calculate summary numbers on input
-        function calcCardTotals(element) {
-            const form = element.closest('.action-form');
-            const returnCard = element.closest('.return-card');
+        // Generate the exact formatted text string requested
+        function generateFormattedText() {
+            const pCenter = getSelectedText('purchasingCenterId');
+            const shop3ps = document.getElementById('shop3ps').value || '';
+            const product = getSelectedText('productId');
+            const qty = document.getElementById('quantity').value || '0';
+            const reason = document.getElementById('reasonForReturn').value || '';
+            const pOfficer = getSelectedText('purchasingOfficerId');
             
-            // Extract return qty from text
-            const qtyText = returnCard.querySelectorAll('.detail-item strong')[2].textContent;
-            const totalQty = parseFloat(qtyText) || 0;
+            const rawReturnDate = document.getElementById('returnDate').value;
+            const formattedReturnDate = rawReturnDate ? rawReturnDate.replace(/-/g, '.') : '';
+            
+            const rawPurchaseDate = document.getElementById('purchaseDate').value;
+            const formattedPurchaseDate = rawPurchaseDate ? rawPurchaseDate.replace(/-/g, '.') : '';
 
-            const nonUsableQty = parseFloat(form.querySelector('.input-nonusable').value) || 0;
-            const price = parseFloat(form.querySelector('.input-price').value) || 0;
+            const store = getSelectedText('storeId');
+            const retDocNo = document.getElementById('returnId').value;
 
-            const totalVal = totalQty * price;
-            const refundableVal = Math.max(0, totalQty - nonUsableQty) * price;
+            return `01).purchasing Center-${pCenter}
+02).Camp-${shop3ps}
+03).Item-${product}
+04).Return Qty-${qty}kg
+05).Reason-${reason}
+06).purchasing office-${pOfficer}
+07).Received Date-${formattedReturnDate}
+08) Purchased Date:${formattedPurchaseDate}
+08).Stores/Branch-${store}
+මෙය සැපයුම්කරුවන්ගෙන් අඩු කල හැකීද ?
 
-            form.querySelector('.calc-total').textContent = `$${totalVal.toFixed(2)}`;
-            form.querySelector('.calc-refundable').textContent = `$${refundableVal.toFixed(2)}`;
+Ret Doc No: (${retDocNo})`;
         }
 
-        // Submit Officer Response & Mark as Complete
-        async function submitReturnResponse(e, firebaseKey, totalQty) {
-            e.preventDefault();
-            const form = e.target;
+        function shareToWhatsApp() {
+            const text = generateFormattedText();
+            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+            window.open(whatsappUrl, '_blank');
+        }
 
-            const nonUsableQty = parseFloat(form.querySelector('.input-nonusable').value) || 0;
-            const price = parseFloat(form.querySelector('.input-price').value) || 0;
-            const shop3ps = form.querySelector('.input-shop').value;
-            const isRefundable = form.querySelector('.input-is-refundable').checked ? "YES" : "NO";
+        async function copyFormattedText() {
+            const text = generateFormattedText();
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast("Formatted text copied to clipboard!");
+            } catch (err) {
+                // Fallback for browsers that block programmatic clipboard write
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                showToast("Formatted text copied to clipboard!");
+            }
+        }
 
-            const totalReturnValue = totalQty * price;
-            const nonUsableValue = nonUsableQty * price;
-            const refundableValue = Math.max(0, totalQty - nonUsableQty) * price;
-
-            const updates = {
-                nonUsableQuantity: nonUsableQty,
-                pricePerUnit: price,
-                shop3ps: shop3ps,
-                isRefundable: isRefundable,
-                totalReturnValue: totalReturnValue,
-                nonUsableValue: nonUsableValue,
-                refundableValue: refundableValue,
-                status: 'completed',
-                updatedAt: new Date().toISOString()
-            };
-
-            await db.ref(`productReturns/${firebaseKey}`).update(updates);
-
-            // Toast feedback
+        function showToast(message) {
             const toast = document.getElementById('toast');
+            document.getElementById('toast-text').textContent = message;
             toast.style.display = 'flex';
             setTimeout(() => toast.style.display = 'none', 2500);
         }
 
-        // Initialize App
-        init();
+        // Auto-Generate Document ID
+        function generateReturnId() {
+            db.ref('productReturns').limitToLast(1).once('value', snapshot => {
+                const data = snapshot.val();
+                let nextNum = 1;
+                if (data) {
+                    const lastItem = Object.values(data)[0];
+                    if (lastItem && lastItem.returnId) {
+                        nextNum = parseInt(lastItem.returnId.split('-')[1] || 0) + 1;
+                    }
+                }
+                document.getElementById('returnId').value = `RET-${nextNum.toString().padStart(7, '0')}`;
+            });
+        }
+
+        // Auto Live Calculation
+        const qtyEl = document.getElementById('quantity');
+        const nonQtyEl = document.getElementById('nonUsableQuantity');
+        const priceEl = document.getElementById('pricePerUnit');
+
+        function updateTotals() {
+            const qty = parseFloat(qtyEl.value) || 0;
+            const nonQty = parseFloat(nonQtyEl.value) || 0;
+            const price = parseFloat(priceEl.value) || 0;
+
+            const totalVal = qty * price;
+            const refundableVal = Math.max(0, qty - nonQty) * price;
+
+            document.getElementById('display-total').textContent = `$${totalVal.toFixed(2)}`;
+            document.getElementById('display-refundable').textContent = `$${refundableVal.toFixed(2)}`;
+        }
+
+        [qtyEl, nonQtyEl, priceEl].forEach(input => input.addEventListener('input', updateTotals));
+
+        // Submit Form
+        document.getElementById('return-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const qty = parseFloat(qtyEl.value) || 0;
+            const nonQty = parseFloat(nonQtyEl.value) || 0;
+            const price = parseFloat(priceEl.value) || 0;
+
+            const record = {
+                returnId: document.getElementById('returnId').value,
+                returnDate: document.getElementById('returnDate').value,
+                purchaseDate: document.getElementById('purchaseDate').value,
+                productId: document.getElementById('productId').value,
+                storeId: document.getElementById('storeId').value,
+                purchasingCenterId: document.getElementById('purchasingCenterId').value,
+                purchasingOfficerId: document.getElementById('purchasingOfficerId').value,
+                quantity: qty,
+                nonUsableQuantity: nonQty,
+                pricePerUnit: price,
+                totalReturnValue: qty * price,
+                nonUsableValue: nonQty * price,
+                refundableValue: Math.max(0, qty - nonQty) * price,
+                shop3ps: document.getElementById('shop3ps').value,
+                reasonForReturn: document.getElementById('reasonForReturn').value,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            await db.ref('productReturns').push(record);
+
+            showToast("Return saved successfully!");
+
+            // Reset Form & Generate Next Doc ID
+            e.target.reset();
+            document.getElementById('returnDate').value = today;
+            updateTotals();
+            generateReturnId();
+        });
+
+        // Initialize Screen
+        loadDropdowns();
+        generateReturnId();
         lucide.createIcons();
     </script>
 </body>

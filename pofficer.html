@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Purchasing Officer Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/lucide@latest/dist/lucide.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: 220 20% 97%;
+            --foreground: 222 47% 11%;
+            --card: 0 0% 100%;
+            --primary: 217 91% 50%;
+            --muted-foreground: 220 9% 46%;
+            --border: 220 13% 91%;
+            --radius: 0.75rem;
+            --success: 142 76% 36%;
+            --warning-bg: 38 92% 95%;
+            --warning-fg: 38 92% 30%;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 16px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        /* Card Setup */
+        .card {
+            background: hsl(var(--card));
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 24px;
+            margin-bottom: 16px;
+        }
+
+        .header {
+            margin-bottom: 20px;
+            border-bottom: 1px solid hsl(var(--border));
+            padding-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .header-text h1 {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .header-text p {
+            font-size: 13px;
+            color: hsl(var(--muted-foreground));
+            margin-top: 4px;
+        }
+
+        .change-officer-btn {
+            background: transparent;
+            border: 1px solid hsl(var(--border));
+            padding: 6px 12px;
+            border-radius: calc(var(--radius) - 2px);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: hsl(var(--primary));
+        }
+
+        /* Form Controls */
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 16px;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 2px);
+            font-size: 15px;
+            background: white;
+            font-family: inherit;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: calc(var(--radius) - 2px);
+            font-weight: 600;
+            font-size: 16px;
+            background: hsl(var(--primary));
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* List Items */
+        .return-card {
+            background: hsl(var(--card));
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .return-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed hsl(var(--border));
+        }
+
+        .doc-badge {
+            font-weight: 700;
+            font-size: 14px;
+            color: hsl(var(--foreground));
+        }
+
+        .status-badge {
+            background-color: hsl(var(--warning-bg));
+            color: hsl(var(--warning-fg));
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+        }
+
+        .return-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px 12px;
+            font-size: 13px;
+            margin-bottom: 16px;
+        }
+
+        .detail-item span {
+            color: hsl(var(--muted-foreground));
+            display: block;
+            font-size: 11px;
+        }
+
+        .detail-item strong {
+            color: hsl(var(--foreground));
+            font-weight: 600;
+        }
+
+        .detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .reason-box {
+            background: hsl(var(--background));
+            padding: 10px;
+            border-radius: calc(var(--radius) - 4px);
+            font-size: 13px;
+            color: hsl(var(--foreground));
+            border-left: 3px solid hsl(var(--primary));
+        }
+
+        /* Action Form Container inside card */
+        .action-form {
+            background: hsl(var(--background));
+            border-radius: calc(var(--radius) - 2px);
+            padding: 12px;
+            border: 1px solid hsl(var(--border));
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .action-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .summary-box {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: calc(var(--radius) - 4px);
+            padding: 10px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            border: 1px dashed hsl(var(--border));
+            margin: 8px 0;
+        }
+
+        .summary-item label {
+            font-size: 10px;
+            color: hsl(var(--muted-foreground));
+            display: block;
+        }
+
+        .summary-item span {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 16px;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .empty-state i {
+            margin-bottom: 12px;
+            color: hsl(var(--primary));
+        }
+
+        .footer-attribution {
+            text-align: center;
+            font-size: 11px;
+            color: hsl(var(--muted-foreground));
+            margin-top: auto;
+            padding: 16px 0;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #10B981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">
+        <i data-lucide="check-circle"></i> Return updated & marked complete!
+    </div>
+
+    <div class="container">
+        
+        <!-- STEP 1: SELECT OFFICER PROMPT -->
+        <div id="selection-screen" class="card">
+            <div class="header">
+                <div class="header-text">
+                    <h1>Purchasing Officer Portal</h1>
+                    <p>Select your identity to review pending returns<br>Managed by Purchasing Division</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="officer-select">Select Your Name</label>
+                <select id="officer-select">
+                    <option value="">Loading officers...</option>
+                </select>
+            </div>
+
+            <button id="proceed-btn" class="btn">
+                Proceed to Pending Returns <i data-lucide="arrow-right"></i>
+            </button>
+        </div>
+
+        <!-- STEP 2: PENDING RETURNS DASHBOARD -->
+        <div id="dashboard-screen" style="display: none;">
+            <div class="card" style="padding: 16px 20px; margin-bottom: 16px;">
+                <div class="header" style="margin-bottom: 0; padding-bottom: 0; border: none;">
+                    <div class="header-text">
+                        <h1 id="officer-heading">Pending Returns</h1>
+                        <p id="officer-subheading">Pending review entries</p>
+                    </div>
+                    <button class="change-officer-btn" onclick="resetOfficerSelection()">Switch User</button>
+                </div>
+            </div>
+
+            <div id="returns-list">
+                <!-- Return items dynamically rendered here -->
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer-attribution">
+        Developed by: Chandana Edirisinghe
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyCgZXx3pGXIFiN06_c_ZiB-Pi8j6RUtebs",
+            authDomain: "wickreturntracking.firebaseapp.com",
+            databaseURL: "https://wickreturntracking-default-rtdb.firebaseio.com",
+            projectId: "wickreturntracking",
+            storageBucket: "wickreturntracking.firebasestorage.app",
+            messagingSenderId: "917407325282",
+            appId: "1:917407325282:web:9e0f9dc199c286de0a853b"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        firebase.auth().signInAnonymously().catch(console.error);
+
+        let currentOfficerId = null;
+        let currentOfficerName = '';
+        let productsMap = {};
+        let storesMap = {};
+        let purchasingCentersMap = {};
+
+        // Load Lookup Data and Officers
+        async function init() {
+            // Pre-fetch lookups
+            db.ref('products').once('value', snapshot => productsMap = snapshot.val() || {});
+            db.ref('stores').once('value', snapshot => storesMap = snapshot.val() || {});
+            db.ref('purchasingCenters').once('value', snapshot => purchasingCentersMap = snapshot.val() || {});
+
+            // Fetch Officers
+            db.ref('purchasingOfficers').once('value', snapshot => {
+                const select = document.getElementById('officer-select');
+                select.innerHTML = '<option value="">Choose your name...</option>';
+                const officers = snapshot.val();
+                if (officers) {
+                    Object.keys(officers).forEach(key => {
+                        const opt = document.createElement('option');
+                        opt.value = key;
+                        opt.textContent = officers[key].name || key;
+                        select.appendChild(opt);
+                    });
+                }
+            });
+        }
+
+        // Proceed Button Listener
+        document.getElementById('proceed-btn').addEventListener('click', () => {
+            const select = document.getElementById('officer-select');
+            if (!select.value) {
+                alert('Please select your name to proceed.');
+                return;
+            }
+            currentOfficerId = select.value;
+            currentOfficerName = select.options[select.selectedIndex].text;
+
+            document.getElementById('selection-screen').style.display = 'none';
+            document.getElementById('dashboard-screen').style.display = 'block';
+
+            document.getElementById('officer-heading').textContent = currentOfficerName;
+            document.getElementById('officer-subheading').textContent = `Pending Returns assigned to you`;
+
+            loadPendingReturns();
+        });
+
+        function resetOfficerSelection() {
+            currentOfficerId = null;
+            document.getElementById('selection-screen').style.display = 'block';
+            document.getElementById('dashboard-screen').style.display = 'none';
+        }
+
+        // Load Pending Returns for Selected Officer
+        function loadPendingReturns() {
+            const container = document.getElementById('returns-list');
+            container.innerHTML = '<div class="empty-state">Loading assigned returns...</div>';
+
+            db.ref('productReturns')
+              .orderByChild('purchasingOfficerId')
+              .equalTo(currentOfficerId)
+              .on('value', snapshot => {
+                  container.innerHTML = '';
+                  const data = snapshot.val();
+
+                  let pendingCount = 0;
+
+                  if (data) {
+                      Object.keys(data).forEach(key => {
+                          const item = data[key];
+                          // Only display items with 'pending' status
+                          if (item.status === 'pending') {
+                              pendingCount++;
+                              container.appendChild(createReturnCard(key, item));
+                          }
+                      });
+                  }
+
+                  if (pendingCount === 0) {
+                      container.innerHTML = `
+                          <div class="card empty-state">
+                              <i data-lucide="check-circle-2" style="width: 48px; height: 48px; stroke-width: 1.5;"></i>
+                              <h3>All Caught Up!</h3>
+                              <p style="font-size: 13px; margin-top: 4px;">No pending returns requiring your response.</p>
+                          </div>
+                      `;
+                      lucide.createIcons();
+                  } else {
+                      lucide.createIcons();
+                  }
+              });
+        }
+
+        // Create Individual Return Card Component
+        function createReturnCard(firebaseKey, item) {
+            const card = document.createElement('div');
+            card.className = 'return-card';
+
+            const prodName = productsMap[item.productId] ? productsMap[item.productId].description : item.productId;
+            const storeName = storesMap[item.storeId] ? storesMap[item.storeId].name : item.storeId;
+            const centerName = purchasingCentersMap[item.purchasingCenterId] ? purchasingCentersMap[item.purchasingCenterId].name : item.purchasingCenterId;
+
+            card.innerHTML = `
+                <div class="return-card-header">
+                    <span class="doc-badge">${item.returnId || 'RET-00000'}</span>
+                    <span class="status-badge">Pending</span>
+                </div>
+
+                <div class="return-details">
+                    <div class="detail-item">
+                        <span>Date Logged</span>
+                        <strong>${item.returnDate || '-'}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Return Qty</span>
+                        <strong>${item.quantity || 0}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Product</span>
+                        <strong>${prodName || '-'}</strong>
+                    </div>
+                    <div class="detail-item">
+                        <span>Store / Center</span>
+                        <strong>${storeName || '-'} / ${centerName || '-'}</strong>
+                    </div>
+                    <div class="detail-item full-width">
+                        <span>Reason for Return</span>
+                        <div class="reason-box">${item.reasonForReturn || 'No reason specified'}</div>
+                    </div>
+                </div>
+
+                <form class="action-form" onsubmit="submitReturnResponse(event, '${firebaseKey}', ${item.quantity || 0})">
+                    <div class="action-grid">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Non-Usable Qty</label>
+                            <input type="number" step="any" min="0" max="${item.quantity || 0}" value="${item.nonUsableQuantity || 0}" class="input-nonusable" oninput="calcCardTotals(this)" required>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Unit Price ($)</label>
+                            <input type="number" step="any" min="0" value="${item.pricePerUnit || 0}" class="input-price" oninput="calcCardTotals(this)" required>
+                        </div>
+
+                        <div class="form-group full-width" style="grid-column: 1 / -1; margin-bottom: 0;">
+                            <label>Shop / 3PS</label>
+                            <input type="text" value="${item.shop3ps || ''}" class="input-shop" placeholder="e.g. Main St Shop">
+                        </div>
+
+                        <div class="summary-box">
+                            <div class="summary-item">
+                                <label>Total Value</label>
+                                <span class="calc-total">$${((item.quantity || 0) * (item.pricePerUnit || 0)).toFixed(2)}</span>
+                            </div>
+                            <div class="summary-item">
+                                <label>Refundable</label>
+                                <span class="calc-refundable" style="color: var(--success);">$${(Math.max(0, (item.quantity || 0) - (item.nonUsableQuantity || 0)) * (item.pricePerUnit || 0)).toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn" style="grid-column: 1 / -1; margin-top: 4px;">
+                            <i data-lucide="check"></i> Submit & Mark Complete
+                        </button>
+                    </div>
+                </form>
+            `;
+            return card;
+        }
+
+        // Auto-calculate summary numbers on input
+        function calcCardTotals(element) {
+            const form = element.closest('.action-form');
+            const returnCard = element.closest('.return-card');
+            
+            // Extract return qty from text
+            const qtyText = returnCard.querySelectorAll('.detail-item strong')[1].textContent;
+            const totalQty = parseFloat(qtyText) || 0;
+
+            const nonUsableQty = parseFloat(form.querySelector('.input-nonusable').value) || 0;
+            const price = parseFloat(form.querySelector('.input-price').value) || 0;
+
+            const totalVal = totalQty * price;
+            const refundableVal = Math.max(0, totalQty - nonUsableQty) * price;
+
+            form.querySelector('.calc-total').textContent = `$${totalVal.toFixed(2)}`;
+            form.querySelector('.calc-refundable').textContent = `$${refundableVal.toFixed(2)}`;
+        }
+
+        // Submit Officer Response & Mark as Complete
+        async function submitReturnResponse(e, firebaseKey, totalQty) {
+            e.preventDefault();
+            const form = e.target;
+
+            const nonUsableQty = parseFloat(form.querySelector('.input-nonusable').value) || 0;
+            const price = parseFloat(form.querySelector('.input-price').value) || 0;
+            const shop3ps = form.querySelector('.input-shop').value;
+
+            const totalReturnValue = totalQty * price;
+            const nonUsableValue = nonUsableQty * price;
+            const refundableValue = Math.max(0, totalQty - nonUsableQty) * price;
+
+            const updates = {
+                nonUsableQuantity: nonUsableQty,
+                pricePerUnit: price,
+                shop3ps: shop3ps,
+                totalReturnValue: totalReturnValue,
+                nonUsableValue: nonUsableValue,
+                refundableValue: refundableValue,
+                status: 'completed',
+                updatedAt: new Date().toISOString()
+            };
+
+            await db.ref(`productReturns/${firebaseKey}`).update(updates);
+
+            // Toast feedback
+            const toast = document.getElementById('toast');
+            toast.style.display = 'flex';
+            setTimeout(() => toast.style.display = 'none', 2500);
+        }
+
+        // Initialize App
+        init();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

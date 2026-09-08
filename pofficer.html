@@ -470,7 +470,9 @@
             const prodName = productsMap[item.productId] ? productsMap[item.productId].description : item.productId;
             const storeName = storesMap[item.storeId] ? storesMap[item.storeId].name : item.storeId;
             const centerName = purchasingCentersMap[item.purchasingCenterId] ? purchasingCentersMap[item.purchasingCenterId].name : item.purchasingCenterId;
-            const isRefundableChecked = item.isRefundable === "YES" || item.isRefundable === true ? 'checked' : '';
+            
+            // All checkboxes load as unchecked by default
+            const isRefundableChecked = '';
 
             card.innerHTML = `
                 <div class="return-card-header">
@@ -575,6 +577,7 @@
 
             const priceInput = form.querySelector('.input-price');
             const shopInput = form.querySelector('.input-shop');
+            const refundableCheckbox = form.querySelector('.input-is-refundable');
 
             const priceVal = priceInput.value.trim();
             const shopVal = shopInput.value.trim();
@@ -586,8 +589,8 @@
                 return;
             }
 
-            // Validation: check if Shop / 3PS is blank
-            if (shopVal === '') {
+            // Validation: check if Shop / 3PS is blank only if "is refundable" is checked
+            if (refundableCheckbox.checked && shopVal === '') {
                 alert('Please fill Shop / 3PS.');
                 shopInput.focus();
                 return;
@@ -596,7 +599,7 @@
             const nonUsableQty = parseFloat(form.querySelector('.input-nonusable').value) || 0;
             const price = parseFloat(priceVal);
             const shop3ps = shopVal;
-            const isRefundable = form.querySelector('.input-is-refundable').checked ? "YES" : "NO";
+            const isRefundable = refundableCheckbox.checked ? "YES" : "NO";
 
             const totalReturnValue = totalQty * price;
             const nonUsableValue = nonUsableQty * price;

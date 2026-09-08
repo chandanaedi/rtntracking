@@ -510,7 +510,7 @@
                 <form class="action-form" onsubmit="submitReturnResponse(event, '${firebaseKey}', ${item.quantity || 0})">
                     <div class="action-grid">
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label>Non-Usable Qty</label>
+                            <label>Non-Refundable Qty</label>
                             <input type="number" step="any" min="0" max="${item.quantity || 0}" value="${item.nonUsableQuantity || 0}" class="input-nonusable" oninput="calcCardTotals(this)" required>
                         </div>
 

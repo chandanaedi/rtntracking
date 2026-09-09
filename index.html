@@ -32,9 +32,28 @@
             color: hsl(var(--foreground));
             min-height: 100vh;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 16px;
+        }
+
+        .main-wrapper {
+            width: 100%;
+            max-width: 580px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .branch-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            align-items: center;
         }
 
         .entry-card {
@@ -43,7 +62,6 @@
             border: 1px solid hsl(var(--border));
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             width: 100%;
-            max-width: 580px;
             padding: 24px;
         }
 
@@ -243,7 +261,6 @@
             border: 1px solid hsl(var(--border));
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             width: 100%;
-            max-width: 800px;
             padding: 24px;
         }
 
@@ -270,6 +287,16 @@
         .pending-item strong {
             color: hsl(var(--foreground));
         }
+
+        /* Footer Branding */
+        .app-footer {
+            margin-top: 12px;
+            font-size: 11px;
+            color: hsl(var(--muted-foreground));
+            letter-spacing: 0.5px;
+            font-weight: 500;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -287,158 +314,162 @@
         </div>
     </div>
 
-    <!-- Main Entry Card -->
-    <div class="entry-card" id="main-entry-container">
-        <div class="header">
-            <h1>New Return Entry</h1>
-            <p>Log incoming returns directly to the Automated Web App</p>
-            <p>Managed by Purchasing Division</p>
-        </div>
-
-        <form id="return-form">
-            <div class="form-grid two-col">
-                <div class="form-group">
-                    <label>Doc ID</label>
-                    <input type="text" id="returnId" readonly placeholder="Assigned on submit">
-                </div>
-
-                <div class="form-group">
-                    <label>Return Date <span class="required">*</span></label>
-                    <input type="date" id="returnDate" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Purchase Date <span class="required">*</label>
-                    <input type="date" id="purchaseDate" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Product <span class="required">*</span></label>
-                    <select id="productId" required>
-                        <option value="">Select Product...</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Store / Branch <span class="required">*</span></label>
-                    <select id="storeId" required>
-                        <option value="">Select Store...</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Purchasing Center <span class="required">*</span></label>
-                    <select id="purchasingCenterId" required>
-                        <option value="">Select Center...</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Purchasing Officer <span class="required">*</span></label>
-                    <select id="purchasingOfficerId" required>
-                        <option value="">Select Officer...</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Return Quantity <span class="required">*</span></label>
-                    <input type="number" step="any" id="quantity" min="0" value="0" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Non-Usable Quantity</label>
-                    <input type="number" step="any" id="nonUsableQuantity" min="0" value="0">
-                </div>
-
-                <div class="form-group">
-                    <label>Unit Price ($) <span class="required">*</span></label>
-                    <input type="number" step="any" id="pricePerUnit" min="0" value="0.00" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Camp / Shop / 3PS</label>
-                    <input type="text" id="shop3ps" placeholder="e.g. Main St Shop">
-                </div>
-
-                <!-- Additional Information Section -->
-                <div class="form-group full-width">
-                    <div class="section-title">Additional Information</div>
-                </div>
-
-                <div class="form-group full-width">
-                    <label>Reason for Return <span class="required">*</span></label>
-                    <textarea id="reasonForReturn" rows="3" placeholder="Enter specific reason or remarks for this return..." required></textarea>
-                </div>
-
-                <!-- Calculated Values Display -->
-                <div class="summary-box">
-                    <div class="summary-item">
-                        <label>Total Value</label>
-                        <span id="display-total">$0.00</span>
-                    </div>
-                    <div class="summary-item">
-                        <label>Refundable</label>
-                        <span id="display-refundable" style="color: var(--success);">$0.00</span>
-                    </div>
-                </div>
-
-                <!-- Actions Grid -->
-                <div class="form-group full-width">
-                    <div class="btn-group">
-                        <button type="submit" class="btn">
-                            <i data-lucide="send"></i> Submit Return
-                        </button>
-
-                        <button type="button" class="btn btn-copy" onclick="copyFormattedText()">
-                            <i data-lucide="copy"></i> Copy Text Format
-                        </button>
-
-                        <button type="button" class="btn btn-secondary" id="go-to-branch-view">
-                            <i data-lucide="list-filter"></i> View pending Returns for Selected Branch
-                        </button>
-                        
-                    </div>
-                </div>
-                <p>Developed by: Chandana Edirisinghe</p>
+    <!-- Main Entry Container -->
+    <div class="main-wrapper" id="main-entry-wrapper">
+        <div class="entry-card">
+            <div class="header">
+                <h1>New Return Entry</h1>
+                <p>Log incoming returns directly to the Automated Web App</p>
+                <p>Managed by Purchasing Division</p>
             </div>
-        </form>
+
+            <form id="return-form">
+                <div class="form-grid two-col">
+                    <div class="form-group">
+                        <label>Doc ID</label>
+                        <input type="text" id="returnId" readonly placeholder="Assigned on submit">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Return Date <span class="required">*</span></label>
+                        <input type="date" id="returnDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Purchase Date <span class="required">*</span></label>
+                        <input type="date" id="purchaseDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Product <span class="required">*</span></label>
+                        <select id="productId" required>
+                            <option value="">Select Product...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Store / Branch <span class="required">*</span></label>
+                        <select id="storeId" required>
+                            <option value="">Select Store...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Purchasing Center <span class="required">*</span></label>
+                        <select id="purchasingCenterId" required>
+                            <option value="">Select Center...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Purchasing Officer <span class="required">*</span></label>
+                        <select id="purchasingOfficerId" required>
+                            <option value="">Select Officer...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Return Quantity <span class="required">*</span></label>
+                        <input type="number" step="any" id="quantity" min="0" value="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Non-Usable Quantity</label>
+                        <input type="number" step="any" id="nonUsableQuantity" min="0" value="0">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Unit Price ($) <span class="required">*</span></label>
+                        <input type="number" step="any" id="pricePerUnit" min="0" value="0.00" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Camp / Shop / 3PS</label>
+                        <input type="text" id="shop3ps" placeholder="e.g. Main St Shop">
+                    </div>
+
+                    <!-- Additional Information Section -->
+                    <div class="form-group full-width">
+                        <div class="section-title">Additional Information</div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Reason for Return <span class="required">*</span></label>
+                        <textarea id="reasonForReturn" rows="3" placeholder="Enter specific reason or remarks for this return..." required></textarea>
+                    </div>
+
+                    <!-- Calculated Values Display -->
+                    <div class="summary-box">
+                        <div class="summary-item">
+                            <label>Total Value</label>
+                            <span id="display-total">$0.00</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Refundable</label>
+                            <span id="display-refundable" style="color: var(--success);">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Actions Grid -->
+                    <div class="form-group full-width">
+                        <div class="btn-group">
+                            <button type="submit" class="btn">
+                                <i data-lucide="send"></i> Submit Return
+                            </button>
+
+                            <button type="button" class="btn btn-copy" onclick="copyFormattedText()">
+                                <i data-lucide="copy"></i> Copy Text Format for Whatsapp
+                            </button>
+
+                            <button type="button" class="btn btn-secondary" id="go-to-branch-view">
+                                <i data-lucide="list-filter"></i> View pending Returns for Selected Branch
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="app-footer">Developed by: Chandana Edirisinghe</div>
     </div>
 
     <!-- Branch Pending Returns View (Hidden by default) -->
-    <div class="branch-view-card hidden" id="branch-view-container">
-        <div class="header">
-            <h1>Pending Returns by Branch</h1>
-            <p>Select a branch to review pending return items</p>
-        </div>
-        <div class="form-grid" id="branch-select-section">
-            <div class="form-group">
-                <label>Select Store / Branch <span class="required">*</span></label>
-                <select id="filter-store-select">
-                    <option value="">Select Branch...</option>
-                </select>
+    <div class="branch-wrapper hidden" id="branch-view-wrapper">
+        <div class="branch-view-card">
+            <div class="header">
+                <h1>Pending Returns by Branch</h1>
+                <p>Select a branch to review pending return items</p>
             </div>
-            <button type="button" class="btn" id="proceed-branch-btn">
-                <i data-lucide="arrow-right"></i> Proceed
-            </button>
-        </div>
+            <div class="form-grid" id="branch-select-section">
+                <div class="form-group">
+                    <label>Select Store / Branch <span class="required">*</span></label>
+                    <select id="filter-store-select">
+                        <option value="">Select Branch...</option>
+                    </select>
+                </div>
+                <button type="button" class="btn" id="proceed-branch-btn">
+                    <i data-lucide="arrow-right"></i> Proceed
+                </button>
+            </div>
 
-        <div id="branch-results-section" class="hidden">
-            <div class="section-title" id="branch-results-title" style="margin-bottom: 8px;">Pending Returns</div>
-            <div class="pending-list" id="pending-returns-list">
-                <!-- Populated dynamically -->
+            <div id="branch-results-section" class="hidden">
+                <div class="section-title" id="branch-results-title" style="margin-bottom: 8px;">Pending Returns</div>
+                <div class="pending-list" id="pending-returns-list">
+                    <!-- Populated dynamically -->
+                </div>
+                <div style="margin-top: 16px;">
+                    <button type="button" class="btn btn-secondary" id="back-to-selector-btn">
+                        <i data-lucide="arrow-left"></i> Change Branch
+                    </button>
+                </div>
             </div>
-            <div style="margin-top: 16px;">
-                <button type="button" class="btn btn-secondary" id="back-to-selector-btn">
-                    <i data-lucide="arrow-left"></i> Change Branch
+
+            <div style="margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" id="back-to-main-btn">
+                    <i data-lucide="home"></i> Back to Main Page
                 </button>
             </div>
         </div>
-
-        <div style="margin-top: 20px;">
-            <button type="button" class="btn btn-secondary" id="back-to-main-btn">
-                <i data-lucide="home"></i> Back to Main Page
-            </button>
-        </div>
+        <div class="app-footer">Developed by: Chandana Edirisinghe</div>
     </div>
 
     <!-- Firebase SDKs -->
@@ -486,16 +517,28 @@
                 globalCenters = snapshot.val() || {};
                 populateSelect('purchasingCenterId', globalCenters, 'name');
             });
+            // Filter purchasing officers to show only Active status officers
             db.ref('purchasingOfficers').once('value', snapshot => {
                 globalOfficers = snapshot.val() || {};
-                populateSelect('purchasingOfficerId', globalOfficers, 'name');
+                const select = document.getElementById('purchasingOfficerId');
+                select.innerHTML = '<option value="">Select Officer...</option>';
+                Object.keys(globalOfficers).forEach(key => {
+                    const officer = globalOfficers[key];
+                    // Check if status is Active (case-insensitive check for robustness)
+                    const status = officer.status ? officer.status.toString().trim().toLowerCase() : '';
+                    if (status === 'active') {
+                        const opt = document.createElement('option');
+                        opt.value = key;
+                        opt.textContent = officer.name || key;
+                        select.appendChild(opt);
+                    }
+                });
             });
         }
 
         function populateSelect(elementId, dataObj, field) {
             const select = document.getElementById(elementId);
             if (!select) return;
-            // Keep first default option, clear rest
             select.innerHTML = select.options[0] ? select.options[0].outerHTML : '<option value="">Select...</option>';
             if (!dataObj) return;
             Object.keys(dataObj).forEach(key => {
@@ -668,6 +711,7 @@ Ret Doc No: (${retDocNo})`;
                         // Reset form for new entry when OK is pressed
                         e.target.reset();
                         document.getElementById('returnDate').value = today;
+                        document.getElementById('purchaseDate').value = today;
                         document.getElementById('returnId').value = '';
                         updateTotals();
                     }
@@ -676,22 +720,22 @@ Ret Doc No: (${retDocNo})`;
         });
 
         // Navigation between Main Entry and Branch Pending View
-        const mainContainer = document.getElementById('main-entry-container');
-        const branchContainer = document.getElementById('branch-view-container');
+        const mainWrapper = document.getElementById('main-entry-wrapper');
+        const branchWrapper = document.getElementById('branch-view-wrapper');
         const branchSelectSection = document.getElementById('branch-select-section');
         const branchResultsSection = document.getElementById('branch-results-section');
 
         document.getElementById('go-to-branch-view').addEventListener('click', () => {
-            mainContainer.classList.add('hidden');
-            branchContainer.classList.remove('hidden');
+            mainWrapper.classList.add('hidden');
+            branchWrapper.classList.remove('hidden');
             branchSelectSection.classList.remove('hidden');
             branchResultsSection.classList.add('hidden');
             document.getElementById('filter-store-select').value = '';
         });
 
         document.getElementById('back-to-main-btn').addEventListener('click', () => {
-            branchContainer.classList.add('hidden');
-            mainContainer.classList.remove('hidden');
+            branchWrapper.classList.add('hidden');
+            mainWrapper.classList.remove('hidden');
         });
 
         document.getElementById('back-to-selector-btn').addEventListener('click', () => {

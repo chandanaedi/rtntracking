@@ -609,7 +609,7 @@ Ret Doc No: (${retDocNo})`;
             const text = generateFormattedText();
             try {
                 await navigator.clipboard.writeText(text);
-                showToast("Formatted text copied to clipboard!");
+                showToast("WhatsApp message එක Type කරන ස්ථානයට ගොස් Paste කිරීමට හැක. | Formatted text copied to clipboard!");
             } catch (err) {
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
@@ -617,7 +617,7 @@ Ret Doc No: (${retDocNo})`;
                 textarea.select();
                 document.execCommand('copy');
                 document.body.removeChild(textarea);
-                showToast("Formatted text copied to clipboard!");
+                showToast("WhatsApp message එක Type කරන ස්ථානයට ගොස් Paste කිරීමට හැක. | Formatted text copied to clipboard!");
             }
         }
 
@@ -625,7 +625,7 @@ Ret Doc No: (${retDocNo})`;
             const toast = document.getElementById('toast');
             document.getElementById('toast-text').textContent = message;
             toast.style.display = 'flex';
-            setTimeout(() => toast.style.display = 'none', 2500);
+            setTimeout(() => toast.style.display = 'none', 6500);
         }
 
         // Auto Live Calculation

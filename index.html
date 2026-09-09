@@ -308,8 +308,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Purchase Date</label>
-                    <input type="date" id="purchaseDate">
+                    <label>Purchase Date <span class="required">*</label>
+                    <input type="date" id="purchaseDate" required>
                 </div>
 
                 <div class="form-group">
@@ -464,6 +464,7 @@
 
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('returnDate').value = today;
+        document.getElementById('purchaseDate').value = today-1;
 
         let globalProducts = {};
         let globalStores = {};

@@ -171,9 +171,8 @@
             gap: 8px;
         }
 
-        .btn-whatsapp {
-            background: #25D366;
-            color: white;
+        .btn-secondary {
+            background: #475569;
         }
 
         .btn-copy {
@@ -197,6 +196,80 @@
             gap: 8px;
             z-index: 1000;
         }
+
+        /* Custom Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+            padding: 16px;
+        }
+
+        .modal-card {
+            background: white;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 420px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .modal-card h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .modal-card p {
+            font-size: 14px;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Branch Pending View Styles */
+        .branch-view-card {
+            background: hsl(var(--card));
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 800px;
+            padding: 24px;
+        }
+
+        .pending-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+            max-height: 450px;
+            overflow-y: auto;
+        }
+
+        .pending-item {
+            background: hsl(var(--background));
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 2px);
+            padding: 14px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .pending-item strong {
+            color: hsl(var(--foreground));
+        }
     </style>
 </head>
 <body>
@@ -205,17 +278,28 @@
         <i data-lucide="check-circle"></i> <span id="toast-text">Return saved successfully!</span>
     </div>
 
-    <div class="entry-card">
+    <!-- Custom Modal for Alerts / Success -->
+    <div id="custom-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <h3 id="modal-title">Notification</h3>
+            <p id="modal-message">Message goes here...</p>
+            <button type="button" class="btn" id="modal-ok-btn">OK</button>
+        </div>
+    </div>
+
+    <!-- Main Entry Card -->
+    <div class="entry-card" id="main-entry-container">
         <div class="header">
             <h1>New Return Entry</h1>
-            <p>Log incoming returns directly to Firebase</p>
+            <p>Log incoming returns directly to the Automated Web App</p>
+            <p>Managed by Purchasing Division</p>
         </div>
 
         <form id="return-form">
             <div class="form-grid two-col">
                 <div class="form-group">
                     <label>Doc ID</label>
-                    <input type="text" id="returnId" readonly>
+                    <input type="text" id="returnId" readonly placeholder="Assigned on submit">
                 </div>
 
                 <div class="form-group">
@@ -224,8 +308,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Purchase Date <span class="required">*</span></label>
-                    <input type="date" id="purchaseDate" required>
+                    <label>Purchase Date</label>
+                    <input type="date" id="purchaseDate">
                 </div>
 
                 <div class="form-group">
@@ -304,18 +388,56 @@
                         <button type="submit" class="btn">
                             <i data-lucide="send"></i> Submit Return
                         </button>
-                        
-                        <!--<button type="button" class="btn btn-whatsapp" onclick="shareToWhatsApp()">
-                            <i data-lucide="message-circle"></i> Share to WhatsApp
-                        </button> -->
 
                         <button type="button" class="btn btn-copy" onclick="copyFormattedText()">
-                            <i data-lucide="copy"></i> Copy Text Format For Whatsapp
+                            <i data-lucide="copy"></i> Copy Text Format
                         </button>
+
+                        <button type="button" class="btn btn-secondary" id="go-to-branch-view">
+                            <i data-lucide="list-filter"></i> View pending Returns for Selected Branch
+                        </button>
+                        <p>Deeloped by: Chandana Edirisinghe</p>
                     </div>
                 </div>
             </div>
         </form>
+    </div>
+
+    <!-- Branch Pending Returns View (Hidden by default) -->
+    <div class="branch-view-card hidden" id="branch-view-container">
+        <div class="header">
+            <h1>Pending Returns by Branch</h1>
+            <p>Select a branch to review pending return items</p>
+        </div>
+        <div class="form-grid" id="branch-select-section">
+            <div class="form-group">
+                <label>Select Store / Branch <span class="required">*</span></label>
+                <select id="filter-store-select">
+                    <option value="">Select Branch...</option>
+                </select>
+            </div>
+            <button type="button" class="btn" id="proceed-branch-btn">
+                <i data-lucide="arrow-right"></i> Proceed
+            </button>
+        </div>
+
+        <div id="branch-results-section" class="hidden">
+            <div class="section-title" id="branch-results-title" style="margin-bottom: 8px;">Pending Returns</div>
+            <div class="pending-list" id="pending-returns-list">
+                <!-- Populated dynamically -->
+            </div>
+            <div style="margin-top: 16px;">
+                <button type="button" class="btn btn-secondary" id="back-to-selector-btn">
+                    <i data-lucide="arrow-left"></i> Change Branch
+                </button>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <button type="button" class="btn btn-secondary" id="back-to-main-btn">
+                <i data-lucide="home"></i> Back to Main Page
+            </button>
+        </div>
     </div>
 
     <!-- Firebase SDKs -->
@@ -341,26 +463,38 @@
 
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('returnDate').value = today;
-        document.getElementById('purchaseDate').value = today;
+
+        let globalProducts = {};
+        let globalStores = {};
+        let globalCenters = {};
+        let globalOfficers = {};
 
         // Fetch Dropdown Data from Firebase
         function loadDropdowns() {
             db.ref('products').once('value', snapshot => {
-                populateSelect('productId', snapshot.val(), 'description');
+                globalProducts = snapshot.val() || {};
+                populateSelect('productId', globalProducts, 'description');
             });
             db.ref('stores').once('value', snapshot => {
-                populateSelect('storeId', snapshot.val(), 'name');
+                globalStores = snapshot.val() || {};
+                populateSelect('storeId', globalStores, 'name');
+                populateSelect('filter-store-select', globalStores, 'name');
             });
             db.ref('purchasingCenters').once('value', snapshot => {
-                populateSelect('purchasingCenterId', snapshot.val(), 'name');
+                globalCenters = snapshot.val() || {};
+                populateSelect('purchasingCenterId', globalCenters, 'name');
             });
             db.ref('purchasingOfficers').once('value', snapshot => {
-                populateSelect('purchasingOfficerId', snapshot.val(), 'name');
+                globalOfficers = snapshot.val() || {};
+                populateSelect('purchasingOfficerId', globalOfficers, 'name');
             });
         }
 
         function populateSelect(elementId, dataObj, field) {
             const select = document.getElementById(elementId);
+            if (!select) return;
+            // Keep first default option, clear rest
+            select.innerHTML = select.options[0] ? select.options[0].outerHTML : '<option value="">Select...</option>';
             if (!dataObj) return;
             Object.keys(dataObj).forEach(key => {
                 const opt = document.createElement('option');
@@ -375,6 +509,23 @@
             if (select.selectedIndex === -1 || !select.value) return "";
             return select.options[select.selectedIndex].text;
         }
+
+        // Custom Modal Handler
+        let modalCallback = null;
+        function showCustomModal(title, message, callback = null) {
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').innerHTML = message;
+            document.getElementById('custom-modal').classList.remove('hidden');
+            modalCallback = callback;
+        }
+
+        document.getElementById('modal-ok-btn').addEventListener('click', () => {
+            document.getElementById('custom-modal').classList.add('hidden');
+            if (typeof modalCallback === 'function') {
+                modalCallback();
+                modalCallback = null;
+            }
+        });
 
         // Generate the exact formatted text string requested
         function generateFormattedText() {
@@ -409,19 +560,12 @@
 Ret Doc No: (${retDocNo})`;
         }
 
-        function shareToWhatsApp() {
-            const text = generateFormattedText();
-            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-            window.open(whatsappUrl, '_blank');
-        }
-
         async function copyFormattedText() {
             const text = generateFormattedText();
             try {
                 await navigator.clipboard.writeText(text);
                 showToast("Formatted text copied to clipboard!");
             } catch (err) {
-                // Fallback for browsers that block programmatic clipboard write
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
@@ -437,21 +581,6 @@ Ret Doc No: (${retDocNo})`;
             document.getElementById('toast-text').textContent = message;
             toast.style.display = 'flex';
             setTimeout(() => toast.style.display = 'none', 2500);
-        }
-
-        // Auto-Generate Document ID
-        function generateReturnId() {
-            db.ref('productReturns').limitToLast(1).once('value', snapshot => {
-                const data = snapshot.val();
-                let nextNum = 1;
-                if (data) {
-                    const lastItem = Object.values(data)[0];
-                    if (lastItem && lastItem.returnId) {
-                        nextNum = parseInt(lastItem.returnId.split('-')[1] || 0) + 1;
-                    }
-                }
-                document.getElementById('returnId').value = `RET-${nextNum.toString().padStart(7, '0')}`;
-            });
         }
 
         // Auto Live Calculation
@@ -477,44 +606,154 @@ Ret Doc No: (${retDocNo})`;
         document.getElementById('return-form').addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            const price = parseFloat(priceEl.value);
+            // Price Validation: empty, zero, or below zero
+            if (isNaN(price) || price <= 0) {
+                showCustomModal("Invalid Price", "Please enter a valid price greater than zero.", () => {
+                    const pInput = document.getElementById('pricePerUnit');
+                    pInput.focus();
+                    pInput.select();
+                });
+                return;
+            }
+
             const qty = parseFloat(qtyEl.value) || 0;
             const nonQty = parseFloat(nonQtyEl.value) || 0;
-            const price = parseFloat(priceEl.value) || 0;
 
-            const record = {
-                returnId: document.getElementById('returnId').value,
-                returnDate: document.getElementById('returnDate').value,
-                purchaseDate: document.getElementById('purchaseDate').value,
-                productId: document.getElementById('productId').value,
-                storeId: document.getElementById('storeId').value,
-                purchasingCenterId: document.getElementById('purchasingCenterId').value,
-                purchasingOfficerId: document.getElementById('purchasingOfficerId').value,
-                quantity: qty,
-                nonUsableQuantity: nonQty,
-                pricePerUnit: price,
-                totalReturnValue: qty * price,
-                nonUsableValue: nonQty * price,
-                refundableValue: Math.max(0, qty - nonQty) * price,
-                shop3ps: document.getElementById('shop3ps').value,
-                reason: document.getElementById('reasonForReturn').value,
-                status: 'pending',
-                createdAt: new Date().toISOString()
-            };
+            // Generate Document ID upon submission
+            db.ref('productReturns').limitToLast(1).once('value', async snapshot => {
+                const data = snapshot.val();
+                let nextNum = 1;
+                if (data) {
+                    const lastItem = Object.values(data)[0];
+                    if (lastItem && lastItem.returnId) {
+                        nextNum = parseInt(lastItem.returnId.split('-')[1] || 0) + 1;
+                    }
+                }
+                const assignedDocNo = `RET-${nextNum.toString().padStart(7, '0')}`;
+                document.getElementById('returnId').value = assignedDocNo;
 
-            await db.ref('productReturns').push(record);
+                const record = {
+                    returnId: assignedDocNo,
+                    returnDate: document.getElementById('returnDate').value,
+                    purchaseDate: document.getElementById('purchaseDate').value,
+                    productId: document.getElementById('productId').value,
+                    storeId: document.getElementById('storeId').value,
+                    purchasingCenterId: document.getElementById('purchasingCenterId').value,
+                    purchasingOfficerId: document.getElementById('purchasingOfficerId').value,
+                    quantity: qty,
+                    nonUsableQuantity: nonQty,
+                    pricePerUnit: price,
+                    totalReturnValue: qty * price,
+                    nonUsableValue: nonQty * price,
+                    refundableValue: Math.max(0, qty - nonQty) * price,
+                    shop3ps: document.getElementById('shop3ps').value,
+                    reasonForReturn: document.getElementById('reasonForReturn').value,
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
 
-            showToast("Return saved successfully!");
+                await db.ref('productReturns').push(record);
 
-            // Reset Form & Generate Next Doc ID
-            e.target.reset();
-            document.getElementById('returnDate').value = today;
-            updateTotals();
-            generateReturnId();
+                // Automatically copy formatted text
+                await copyFormattedText();
+
+                // Show success popup with bold doc no
+                showCustomModal(
+                    "Success", 
+                    `Return has been successfully submitted, the doc no is : <strong>${assignedDocNo}</strong><br><br><em>(Formatted text copied to clipboard)</em>`, 
+                    () => {
+                        // Reset form for new entry when OK is pressed
+                        e.target.reset();
+                        document.getElementById('returnDate').value = today;
+                        document.getElementById('returnId').value = '';
+                        updateTotals();
+                    }
+                );
+            });
+        });
+
+        // Navigation between Main Entry and Branch Pending View
+        const mainContainer = document.getElementById('main-entry-container');
+        const branchContainer = document.getElementById('branch-view-container');
+        const branchSelectSection = document.getElementById('branch-select-section');
+        const branchResultsSection = document.getElementById('branch-results-section');
+
+        document.getElementById('go-to-branch-view').addEventListener('click', () => {
+            mainContainer.classList.add('hidden');
+            branchContainer.classList.remove('hidden');
+            branchSelectSection.classList.remove('hidden');
+            branchResultsSection.classList.add('hidden');
+            document.getElementById('filter-store-select').value = '';
+        });
+
+        document.getElementById('back-to-main-btn').addEventListener('click', () => {
+            branchContainer.classList.add('hidden');
+            mainContainer.classList.remove('hidden');
+        });
+
+        document.getElementById('back-to-selector-btn').addEventListener('click', () => {
+            branchResultsSection.classList.add('hidden');
+            branchSelectSection.classList.remove('hidden');
+        });
+
+        document.getElementById('proceed-branch-btn').addEventListener('click', async () => {
+            const selectedStoreId = document.getElementById('filter-store-select').value;
+            if (!selectedStoreId) {
+                showCustomModal("Selection Required", "Please select a branch or store to proceed.");
+                return;
+            }
+
+            const storeName = globalStores[selectedStoreId]?.name || 'Selected Branch';
+            document.getElementById('branch-results-title').textContent = `Pending Returns for: ${storeName}`;
+
+            const listContainer = document.getElementById('pending-returns-list');
+            listContainer.innerHTML = '<p style="text-align:center; padding: 20px;">Loading pending returns...</p>';
+
+            branchSelectSection.classList.add('hidden');
+            branchResultsSection.classList.remove('hidden');
+
+            db.ref('productReturns').orderByChild('storeId').equalTo(selectedStoreId).once('value', snapshot => {
+                const data = snapshot.val();
+                listContainer.innerHTML = '';
+
+                if (!data) {
+                    listContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-foreground);">No pending returns found for this branch.</p>';
+                    return;
+                }
+
+                let itemsFound = false;
+                Object.values(data).forEach(item => {
+                    if (item.status === 'pending') {
+                        itemsFound = true;
+                        const productName = globalProducts[item.productId]?.description || item.productId;
+                        const centerName = globalCenters[item.purchasingCenterId]?.name || 'N/A';
+                        const officerName = globalOfficers[item.purchasingOfficerId]?.name || 'N/A';
+
+                        const div = document.createElement('div');
+                        div.className = 'pending-item';
+                        div.innerHTML = `
+                            <div><strong>Doc ID:</strong> ${item.returnId || 'N/A'}</div>
+                            <div><strong>Date:</strong> ${item.returnDate || 'N/A'}</div>
+                            <div><strong>Product:</strong> ${productName}</div>
+                            <div><strong>Qty:</strong> ${item.quantity}kg</div>
+                            <div><strong>Total:</strong> $${(item.totalReturnValue || 0).toFixed(2)}</div>
+                            <div><strong>Center:</strong> ${centerName}</div>
+                            <div><strong>Officer:</strong> ${officerName}</div>
+                            <div style="grid-column: 1 / -1;"><strong>Reason:</strong> ${item.reasonForReturn || 'N/A'}</div>
+                        `;
+                        listContainer.appendChild(div);
+                    }
+                });
+
+                if (!itemsFound) {
+                    listContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-foreground);">No pending returns found for this branch.</p>';
+                }
+            });
         });
 
         // Initialize Screen
         loadDropdowns();
-        generateReturnId();
         lucide.createIcons();
     </script>
 </body>

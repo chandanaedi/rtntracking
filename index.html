@@ -590,17 +590,17 @@
             const store = getSelectedText('storeId');
             const retDocNo = document.getElementById('returnId').value;
 
-            return `01) Purchasing Center:- ${pCenter}
+            return `01) Purchasing Center:- *${pCenter}*
 02) Camp:- ${shop3ps}
-03) Item:- ${product}
-04) Return Qty:- ${qty}kg
+03) Item:- *${product}*
+04) Return Qty:- *${qty}kg*
 05) Reason:- ${reason}
-06) Purchasing office:- ${pOfficer}
+06) Purchasing office:- *${pOfficer}*
 07) Received Date:- ${formattedReturnDate}
 08) Purchased Date:- ${formattedPurchaseDate}
 09) Stores/Branch:- ${store}
 
-මෙය සැපයුම්කරුවන්ගෙන් අඩු කල හැකීද ?
+ම*මෙය සැපයුම්කරුවන්ගෙන් අඩු කල හැකිද ?*
 
 Ret Doc No: (${retDocNo})`;
         }

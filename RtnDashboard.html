@@ -307,7 +307,7 @@
             margin-bottom: 24px;
         }
 
-        /* Simplified Filter Section (Accordion style toggle on mobile for simplicity) */
+        /* Filter Section */
         .filters-section { margin-bottom: 24px; }
         
         .filters-header-bar {
@@ -350,12 +350,6 @@
             font-size: 13px;
             font-weight: 600;
             color: hsl(var(--muted-foreground));
-        }
-
-        .date-range {
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .date-input, .shop-text-input, .filter-select {
@@ -438,16 +432,43 @@
         .text-destructive { color: hsl(var(--destructive)); }
 
         /* Charts Section */
+        .charts-section { margin-bottom: 24px; }
+
+        .charts-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            cursor: pointer;
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+        }
+
+        .charts-header-bar h3 {
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 16px;
-            margin-bottom: 24px;
+            background: white;
+            padding: 20px;
+            border-top: 1px solid hsl(var(--border));
+            border-bottom-left-radius: var(--radius);
+            border-bottom-right-radius: var(--radius);
         }
 
         .chart-card {
             padding: 20px;
             margin-bottom: 0;
+            border: 1px solid hsl(var(--border));
+            border-radius: var(--radius);
         }
 
         .chart-header {
@@ -509,7 +530,7 @@
             border-collapse: collapse;
             font-size: 12px;
             text-align: left;
-            min-width: 800px; /* Forces readable horizontal scroll on small devices */
+            min-width: 1050px; /* Expanded min-width to accommodate new columns nicely */
         }
 
         .data-table th {
@@ -736,7 +757,7 @@
                     </div>
                 </header>
 
-                <!-- Simplified Collapsible Filter Section -->
+                <!-- Filter Section -->
                 <div class="filters-section">
                     <div class="card" style="margin-bottom: 0;">
                         <div class="filters-header-bar" id="filter-toggle-bar">
@@ -744,6 +765,10 @@
                             <i data-lucide="chevron-down" id="filter-chevron"></i>
                         </div>
                         <div class="filters-container" id="filters-body">
+                            <div class="filter-group">
+                                <label for="filter-return-no">Return Number (Doc ID)</label>
+                                <input type="text" id="filter-return-no" class="shop-text-input" placeholder="Type return number...">
+                            </div>
                             <div class="filter-group">
                                 <label for="filter-date-from">Date From</label>
                                 <input type="date" id="filter-date-from" class="date-input">
@@ -843,32 +868,40 @@
                     </div>
                 </div>
 
-                <!-- Charts Section -->
-                <div class="charts-grid">
-                    <div class="card chart-card">
-                        <div class="chart-header">
-                            <h3>Returns by Status</h3>
-                            <select id="status-chart-period" class="chart-period-select">
-                                <option value="month">This Month</option>
-                                <option value="quarter">Quarter</option>
-                                <option value="year">Year</option>
-                            </select>
+                <!-- Charts Section (Collapsible & Collapsed by Default) -->
+                <div class="charts-section">
+                    <div class="card" style="margin-bottom: 0;">
+                        <div class="charts-header-bar" id="charts-toggle-bar">
+                            <h3><i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i> Analytics Charts (Status & Monthly Trend)</h3>
+                            <i data-lucide="chevron-down" id="charts-chevron" style="transform: rotate(-90deg);"></i>
                         </div>
-                        <div class="chart-container">
-                            <canvas id="status-chart"></canvas>
-                        </div>
-                    </div>
+                        <div class="charts-grid" id="charts-body" style="display: none;">
+                            <div class="chart-card">
+                                <div class="chart-header">
+                                    <h3>Returns by Status</h3>
+                                    <select id="status-chart-period" class="chart-period-select">
+                                        <option value="month">This Month</option>
+                                        <option value="quarter">Quarter</option>
+                                        <option value="year">Year</option>
+                                    </select>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="status-chart"></canvas>
+                                </div>
+                            </div>
 
-                    <div class="card chart-card">
-                        <div class="chart-header">
-                            <h3>Monthly Trend</h3>
-                            <select id="trend-chart-period" class="chart-period-select">
-                                <option value="6">Last 6M</option>
-                                <option value="12">Last 12M</option>
-                            </select>
-                        </div>
-                        <div class="chart-container">
-                            <canvas id="trend-chart"></canvas>
+                            <div class="chart-card">
+                                <div class="chart-header">
+                                    <h3>Monthly Trend</h3>
+                                    <select id="trend-chart-period" class="chart-period-select">
+                                        <option value="6">Last 6M</option>
+                                        <option value="12">Last 12M</option>
+                                    </select>
+                                </div>
+                                <div class="chart-container">
+                                    <canvas id="trend-chart"></canvas>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -896,12 +929,14 @@
                                         <th>Date</th>
                                         <th>Item Code</th>
                                         <th>Description</th>
+                                        <th>Qty</th>
+                                        <th>Price</th>
                                         <th>Total Value</th>
                                         <th>Refundable</th>
                                         <th>Non-Refund</th>
                                         <th>Shop</th>
-                                        <th>Center</th>
-                                        <th>Officer</th>
+                                        <th>Purchasing Center</th>
+                                        <th>Purchasing Officer</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
@@ -960,7 +995,7 @@
         class ReturnsAnalyticsDashboard {
             constructor() {
                 this.data = { products: [], stores: [], purchasingCenters: [], purchasingOfficers: [], productReturns: [], shop3ps: [] };
-                this.currentFilters = { dateFrom: '', dateTo: '', status: '', storeId: '', shop3psText: '', centerId: '', officerId: '' };
+                this.currentFilters = { returnNo: '', dateFrom: '', dateTo: '', status: '', storeId: '', shop3psText: '', centerId: '', officerId: '' };
                 this.currentPage = 1;
                 this.itemsPerPage = 10;
                 this.charts = { statusChart: null, trendChart: null };
@@ -1043,6 +1078,27 @@
                     chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
                 });
 
+                // Collapsible charts toggle (Collapsed by default)
+                const chartsToggleBar = document.getElementById('charts-toggle-bar');
+                const chartsBody = document.getElementById('charts-body');
+                const chartsChevron = document.getElementById('charts-chevron');
+
+                chartsToggleBar.addEventListener('click', () => {
+                    const isHidden = chartsBody.style.display === 'none';
+                    chartsBody.style.display = isHidden ? 'grid' : 'none';
+                    chartsChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+                    if (isHidden) {
+                        this.updateCharts();
+                    }
+                });
+
+                // Real-time filtering for Return Number input
+                document.getElementById('filter-return-no').addEventListener('input', (e) => {
+                    this.currentFilters.returnNo = e.target.value.trim().toLowerCase();
+                    this.currentPage = 1;
+                    this.updateDashboard();
+                });
+
                 ['date-from', 'date-to', 'status', 'store', 'center', 'officer'].forEach(id => {
                     document.getElementById(`filter-${id}`).addEventListener('change', (e) => {
                         this.currentFilters[id.replace(/-([a-z])/g, (g) => g[1].toUpperCase())] = e.target.value;
@@ -1083,7 +1139,6 @@
                     if (this.currentPage < totalPages) { this.currentPage++; this.updateTable(); }
                 });
 
-                // Mobile Navigation Sidebar Toggles
                 document.getElementById('mobile-menu-toggle').addEventListener('click', () => {
                     document.getElementById('sidebar').classList.add('mobile-open');
                 });
@@ -1107,11 +1162,14 @@
             
             clearFilters() {
                 this.initializeUI();
+                document.getElementById('filter-return-no').value = '';
                 document.getElementById('filter-status').value = '';
                 document.getElementById('filter-store').value = '';
                 document.getElementById('filter-shop3ps-text').value = '';
                 document.getElementById('filter-center').value = '';
                 document.getElementById('filter-officer').value = '';
+                
+                this.currentFilters.returnNo = '';
                 this.currentFilters.status = '';
                 this.currentFilters.storeId = '';
                 this.currentFilters.shop3psText = '';
@@ -1124,10 +1182,33 @@
             
             getFilteredReturns() {
                 let returns = this.data.productReturns || [];
+                
+                if (this.currentFilters.returnNo) {
+                    returns = returns.filter(r => (r.returnId || '').toLowerCase().includes(this.currentFilters.returnNo));
+                }
+
                 if (this.currentFilters.dateFrom) returns = returns.filter(r => new Date(r.returnDate) >= new Date(this.currentFilters.dateFrom));
                 if (this.currentFilters.dateTo) returns = returns.filter(r => new Date(r.returnDate) <= new Date(this.currentFilters.dateTo));
                 if (this.currentFilters.status) returns = returns.filter(r => r.status === this.currentFilters.status);
                 if (this.currentFilters.storeId) returns = returns.filter(r => r.storeId === this.currentFilters.storeId);
+                
+                if (this.currentFilters.shop3psText) {
+                    const query = this.currentFilters.shop3psText.toLowerCase();
+                    returns = returns.filter(r => {
+                        const shopVal = (r.shop3ps || '').toString().toLowerCase();
+                        if (shopVal.includes(query)) return true;
+                        if (this.data.shop3ps && this.data.shop3ps.length > 0) {
+                            const matchedShop = this.data.shop3ps.find(s => s.id === r.shop3ps);
+                            if (matchedShop) {
+                                const sName = (matchedShop.name || '').toLowerCase();
+                                const sCode = (matchedShop.code || '').toLowerCase();
+                                if (sName.includes(query) || sCode.includes(query)) return true;
+                            }
+                        }
+                        return false;
+                    });
+                }
+
                 if (this.currentFilters.centerId) returns = returns.filter(r => r.purchasingCenterId === this.currentFilters.centerId);
                 if (this.currentFilters.officerId) returns = returns.filter(r => r.purchasingOfficerId === this.currentFilters.officerId);
                 
@@ -1170,7 +1251,7 @@
                 
                 tableBody.innerHTML = '';
                 if (pageData.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="12" style="text-align: center; padding: 24px;">No records match your criteria.</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="14" style="text-align: center; padding: 24px;">No records match your criteria.</td></tr>`;
                     return;
                 }
                 
@@ -1180,18 +1261,28 @@
                     const officer = this.data.purchasingOfficers.find(o => o.id === item.purchasingOfficerId);
                     const status = item.status || 'pending';
                     
+                    let shopDisplay = item.shop3ps || 'N/A';
+                    if (this.data.shop3ps && this.data.shop3ps.length > 0) {
+                        const foundShop = this.data.shop3ps.find(s => s.id === item.shop3ps);
+                        if (foundShop) {
+                            shopDisplay = foundShop.name || foundShop.code || item.shop3ps;
+                        }
+                    }
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td><span class="mono">${item.returnId || 'N/A'}</span></td>
                         <td>${item.returnDate || 'N/A'}</td>
                         <td><span class="mono">${product?.code || 'N/A'}</span></td>
                         <td>${product?.description || 'N/A'}</td>
+                        <td>${item.quantity || 0}</td>
+                        <td>$${(item.pricePerUnit || 0).toFixed(2)}</td>
                         <td><strong>$${(item.totalReturnValue || 0).toFixed(2)}</strong></td>
                         <td class="text-success">$${(item.refundableValue || 0).toFixed(2)}</td>
                         <td class="text-destructive">$${(item.nonUsableValue || 0).toFixed(2)}</td>
-                        <td>${item.shop3ps || 'N/A'}</td>
-                        <td>${center?.code || 'N/A'}</td>
-                        <td>${officer?.code || 'N/A'}</td>
+                        <td>${shopDisplay}</td>
+                        <td>${center?.name || 'N/A'}</td>
+                        <td>${officer?.name || 'N/A'}</td>
                         <td><span class="badge badge-${status}">${status}</span></td>
                         <td>
                             <button class="btn-icon view-details" data-id="${item.id}" title="View"><i data-lucide="eye" style="width:16px;height:16px;"></i></button>
@@ -1214,6 +1305,14 @@
                 const store = this.data.stores.find(s => s.id === item.storeId);
                 const center = this.data.purchasingCenters.find(c => c.id === item.purchasingCenterId);
                 const officer = this.data.purchasingOfficers.find(o => o.id === item.purchasingOfficerId);
+                
+                let shopDisplay = item.shop3ps || 'N/A';
+                if (this.data.shop3ps && this.data.shop3ps.length > 0) {
+                    const foundShop = this.data.shop3ps.find(s => s.id === item.shop3ps);
+                    if (foundShop) {
+                        shopDisplay = `${foundShop.name || ''} (${foundShop.code || item.shop3ps})`;
+                    }
+                }
 
                 const html = `
                     <div class="details-grid">
@@ -1222,15 +1321,19 @@
                             <div class="detail-row"><span class="detail-label">Doc ID:</span><span class="detail-value mono">${item.returnId || ''}</span></div>
                             <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${item.status || ''}</span></div>
                             <div class="detail-row"><span class="detail-label">Return Date:</span><span class="detail-value">${item.returnDate || ''}</span></div>
+                            <div class="detail-row"><span class="detail-label">Purchase Date:</span><span class="detail-value">${item.purchaseDate || ''}</span></div>
                         </div>
                         <div class="details-section">
-                            <h4>Product</h4>
+                            <h4>Product Details</h4>
                             <div class="detail-row"><span class="detail-label">Code:</span><span class="detail-value mono">${product?.code || ''}</span></div>
                             <div class="detail-row"><span class="detail-label">Desc:</span><span class="detail-value">${product?.description || ''}</span></div>
-                            <div class="detail-row"><span class="detail-label">Qty:</span><span class="detail-value">${item.quantity || 0}</span></div>
+                            <div class="detail-row"><span class="detail-label">Quantity:</span><span class="detail-value">${item.quantity || 0}</span></div>
+                            <div class="detail-row"><span class="detail-label">Refundable Qty:</span><span class="detail-value text-success">${item.refundableQuantity || 0}</span></div>
+                            <div class="detail-row"><span class="detail-label">Non-Usable Qty:</span><span class="detail-value text-destructive">${item.nonUsableQuantity || 0}</span></div>
                         </div>
                         <div class="details-section">
                             <h4>Financials</h4>
+                            <div class="detail-row"><span class="detail-label">Unit Price:</span><span class="detail-value">$${(item.pricePerUnit || 0).toFixed(2)}</span></div>
                             <div class="detail-row"><span class="detail-label">Total Value:</span><span class="detail-value">$${(item.totalReturnValue || 0).toFixed(2)}</span></div>
                             <div class="detail-row"><span class="detail-label">Refundable:</span><span class="detail-value text-success">$${(item.refundableValue || 0).toFixed(2)}</span></div>
                             <div class="detail-row"><span class="detail-label">Non-Refundable:</span><span class="detail-value text-destructive">$${(item.nonUsableValue || 0).toFixed(2)}</span></div>
@@ -1238,9 +1341,15 @@
                         <div class="details-section">
                             <h4>Location & Personnel</h4>
                             <div class="detail-row"><span class="detail-label">Store:</span><span class="detail-value">${store?.name || ''}</span></div>
+                            <div class="detail-row"><span class="detail-label">Shop (3ps):</span><span class="detail-value">${shopDisplay}</span></div>
                             <div class="detail-row"><span class="detail-label">Center:</span><span class="detail-value">${center?.name || ''}</span></div>
                             <div class="detail-row"><span class="detail-label">Officer:</span><span class="detail-value">${officer?.name || ''}</span></div>
                         </div>
+                        ${item.reasonForReturn ? `
+                        <div class="details-section" style="grid-column: 1 / -1;">
+                            <h4>Reason for Return</h4>
+                            <p style="font-size: 12px; color: hsl(var(--foreground));">${item.reasonForReturn}</p>
+                        </div>` : ''}
                     </div>
                 `;
 
@@ -1262,6 +1371,9 @@
             }
             
             updateCharts() {
+                const chartsBody = document.getElementById('charts-body');
+                if (chartsBody.style.display === 'none') return;
+
                 this.updateStatusChart();
                 this.updateTrendChart();
             }
@@ -1314,21 +1426,13 @@
             }
 
             exportToExcel() {
-                /**const filtered = this.getFilteredReturns();
-                * if (!filtered.length) { this.showToast('No data to export', 'warning'); return; }
-                * const ws = XLSX.utils.json_to_sheet(filtered);
-                * const wb = XLSX.utils.book_new();
-                * XLSX.utils.book_append_sheet(wb, ws, "Returns");
-                * XLSX.writeFile(wb, "Returns_Export.xlsx");
-                * this.showToast('Excel exported successfully', 'success'); */
-               const filteredReturns = this.getFilteredReturns();
+                const filteredReturns = this.getFilteredReturns();
                 
                 if (filteredReturns.length === 0) {
                     this.showToast('No data available to export for selected period.', 'warning');
                     return;
                 }
 
-                // Map raw JSON items to mapped Excel Rows containing all base fields & lookup metadata
                 const excelData = filteredReturns.map(item => {
                     const product = this.data.products.find(p => p.id === item.productId);
                     const store = this.data.stores.find(s => s.id === item.storeId);
@@ -1338,49 +1442,29 @@
                     const officer = this.data.purchasingOfficers.find(o => o.id === item.purchasingOfficerId);
 
                     return {
-                        
                         "Return Doc ID": item.returnId || '',
                         "Return Date": item.returnDate || '',
                         "Purchase Date": item.purchaseDate || '',
                         "Status": item.status || '',
                         "Product Code": product?.code || '',
                         "Product Description": product?.description || '',
-                        "Product Unit": product?.unit || '',
                         "Quantity": item.quantity || 0,
-                        "Non-Usable Quantity": item.nonUsableQuantity || 0,
-                        "Refundable Quantity": item.refundableQuantity || 0,
                         "Price Per Unit": item.pricePerUnit || 0,
                         "Total Return Value": item.totalReturnValue || 0,
                         "Refundable Value": item.refundableValue || 0,
                         "Non-Usable Value": item.nonUsableValue || 0,
-                        "Value Difference": item.valueDifference || 0,
-                        "Is Refundable": item.isRefundable ? 'YES' : 'NO',
-                        "Store Code": store?.code || '',
                         "Store Name": store?.name || '',
-                        "Shop 3PS ID / Code": item.shop3ps || '',
                         "Shop 3PS Name": shop3ps?.name || shop3ps?.code || item.shop3ps || '',
-                        "Purchasing Center Code": center?.code || '',
                         "Purchasing Center Name": center?.name || '',
-                        "Purchasing Officer Code": officer?.code || '',
                         "Purchasing Officer Name": officer?.name || '',
-                        "Reason": item.reasonForReturn || '',
-                        "Created At": item.createdAt || '',
-                        "Updated At": item.updatedAt || ''
+                        "Reason": item.reasonForReturn || ''
                     };
                 });
 
-                // Generate worksheet & workbook using SheetJS
                 const worksheet = XLSX.utils.json_to_sheet(excelData);
                 const workbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(workbook, worksheet, "Raw Returns Data");
 
-                // Auto-adjust column widths for optimal reading
-                const max_widths = Object.keys(excelData[0]).map(key => ({
-                    wch: Math.max(key.length, 12)
-                }));
-                worksheet['!cols'] = max_widths;
-
-                // Download spreadsheet
                 const dateFrom = this.currentFilters.dateFrom || 'Start';
                 const dateTo = this.currentFilters.dateTo || 'End';
                 const filename = `Returns_Raw_Data_${dateFrom}_to_${dateTo}.xlsx`;
@@ -1388,9 +1472,6 @@
                 XLSX.writeFile(workbook, filename);
                 this.showToast('Raw data exported to Excel successfully!', 'success');
             }
-
-
-
             
             exportToPDF() {
                 const filtered = this.getFilteredReturns();
@@ -1400,8 +1481,8 @@
                 doc.text('Returns Analytics Report', 14, 15);
                 doc.autoTable({
                     startY: 20,
-                    head: [['Doc No.', 'Date', 'Qty', 'Total Value', 'Status']],
-                    body: filtered.map(r => [r.returnId || '', r.returnDate || '', r.quantity || 0, `$${(r.totalReturnValue || 0).toFixed(2)}`, r.status || ''])
+                    head: [['Doc No.', 'Date', 'Qty', 'Price', 'Total Value', 'Status']],
+                    body: filtered.map(r => [r.returnId || '', r.returnDate || '', r.quantity || 0, `$${(r.pricePerUnit || 0).toFixed(2)}`, `$${(r.totalReturnValue || 0).toFixed(2)}`, r.status || ''])
                 });
                 doc.save('Returns_Report.pdf');
                 this.showToast('PDF exported successfully', 'success');

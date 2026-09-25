@@ -198,6 +198,23 @@
             color: white;
         }
 
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 12px;
+            width: auto;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: hsl(var(--primary));
+            border: 1px solid hsl(var(--primary));
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--primary));
+            color: white;
+        }
+
         .toast {
             position: fixed;
             top: 20px;
@@ -212,7 +229,7 @@
             display: none;
             align-items: center;
             gap: 8px;
-            z-index: 1000;
+            z-index: 1200;
         }
 
         /* Custom Modal Overlay */
@@ -237,6 +254,13 @@
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
         }
 
+        .modal-card.details-modal {
+            max-width: 520px;
+            text-align: left;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
         .modal-card h3 {
             font-size: 18px;
             font-weight: 700;
@@ -248,6 +272,37 @@
             color: hsl(var(--muted-foreground));
             margin-bottom: 20px;
             line-height: 1.5;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .details-item {
+            background: hsl(var(--background));
+            padding: 8px 12px;
+            border-radius: calc(var(--radius) - 4px);
+            border: 1px solid hsl(var(--border));
+        }
+
+        .details-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .details-item label {
+            font-size: 11px;
+            color: hsl(var(--muted-foreground));
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .details-item span {
+            font-weight: 600;
+            color: hsl(var(--foreground));
         }
 
         .hidden {
@@ -278,10 +333,26 @@
             border: 1px solid hsl(var(--border));
             border-radius: calc(var(--radius) - 2px);
             padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .pending-item-details {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 8px;
-            font-size: 13px;
+        }
+
+        .pending-item-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            border-top: 1px dashed hsl(var(--border));
+            padding-top: 10px;
+            margin-top: 4px;
+            flex-wrap: wrap;
         }
 
         .pending-item strong {
@@ -311,6 +382,17 @@
             <h3 id="modal-title">Notification</h3>
             <p id="modal-message">Message goes here...</p>
             <button type="button" class="btn" id="modal-ok-btn">OK</button>
+        </div>
+    </div>
+
+    <!-- Details Modal for Viewing Full Item Info -->
+    <div id="details-modal" class="modal-overlay hidden">
+        <div class="modal-card details-modal">
+            <h3 id="details-modal-title">Return Details</h3>
+            <div class="details-grid" id="details-modal-content">
+                <!-- Dynamically populated -->
+            </div>
+            <button type="button" class="btn" id="details-modal-close-btn">Close</button>
         </div>
     </div>
 
@@ -501,6 +583,7 @@
         let globalStores = {};
         let globalCenters = {};
         let globalOfficers = {};
+        let globalPendingReturnsMap = {};
 
         // Fetch Dropdown Data from Firebase
         function loadDropdowns() {
@@ -572,6 +655,38 @@
             }
         });
 
+        // Details Modal Handler
+        function openDetailsModal(item) {
+            const productName = globalProducts[item.productId]?.description || item.productId || 'N/A';
+            const storeName = globalStores[item.storeId]?.name || item.storeId || 'N/A';
+            const centerName = globalCenters[item.purchasingCenterId]?.name || item.purchasingCenterId || 'N/A';
+            const officerName = globalOfficers[item.purchasingOfficerId]?.name || item.purchasingOfficerId || 'N/A';
+
+            const container = document.getElementById('details-modal-content');
+            container.innerHTML = `
+                <div class="details-item"><label>Doc ID</label><span>${item.returnId || 'N/A'}</span></div>
+                <div class="details-item"><label>Status</label><span>${item.status || 'N/A'}</span></div>
+                <div class="details-item"><label>Return Date</label><span>${item.returnDate || 'N/A'}</span></div>
+                <div class="details-item"><label>Purchase Date</label><span>${item.purchaseDate || 'N/A'}</span></div>
+                <div class="details-item full-width"><label>Product</label><span>${productName}</span></div>
+                <div class="details-item full-width"><label>Store / Branch</label><span>${storeName}</span></div>
+                <div class="details-item"><label>Purchasing Center</label><span>${centerName}</span></div>
+                <div class="details-item"><label>Purchasing Officer</label><span>${officerName}</span></div>
+                <div class="details-item"><label>Return Qty</label><span>${item.quantity || 0} kg</span></div>
+                <div class="details-item"><label>Non-Usable Qty</label><span>${item.nonUsableQuantity || 0} kg</span></div>
+                <div class="details-item"><label>Unit Price</label><span>$${parseFloat(item.pricePerUnit || 0).toFixed(2)}</span></div>
+                <div class="details-item"><label>Total Value</label><span>$${parseFloat(item.totalReturnValue || 0).toFixed(2)}</span></div>
+                <div class="details-item full-width"><label>Refundable Value</label><span style="color: var(--success);">$${parseFloat(item.refundableValue || 0).toFixed(2)}</span></div>
+                <div class="details-item full-width"><label>Shop / 3PS</label><span>${item.shop3ps || 'N/A'}</span></div>
+                <div class="details-item full-width"><label>Reason for Return</label><span>${item.reasonForReturn || 'N/A'}</span></div>
+            `;
+            document.getElementById('details-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('details-modal-close-btn').addEventListener('click', () => {
+            document.getElementById('details-modal').classList.add('hidden');
+        });
+
         // Generate the exact formatted text string requested
         function generateFormattedText() {
             const pCenter = getSelectedText('purchasingCenterId');
@@ -590,6 +705,11 @@
             const store = getSelectedText('storeId');
             const retDocNo = document.getElementById('returnId').value;
 
+            return constructFormattedMsg(pCenter, shop3ps, product, qty, reason, pOfficer, formattedReturnDate, formattedPurchaseDate, store, retDocNo);
+        }
+
+        // Shared helper function to format Whatsapp text string for both form submission & branch item views
+        function constructFormattedMsg(pCenter, shop3ps, product, qty, reason, pOfficer, formattedReturnDate, formattedPurchaseDate, store, retDocNo) {
             return `01) Purchasing Center:- *${pCenter}*
 02) Camp:- ${shop3ps}
 03) Item:- *${product}*
@@ -605,8 +725,40 @@
 Ret Doc No: (${retDocNo})`;
         }
 
+        // Generate formatted text directly from a database record object
+        function generateFormattedTextFromItem(item) {
+            const pCenter = globalCenters[item.purchasingCenterId]?.name || item.purchasingCenterId || '';
+            const shop3ps = item.shop3ps || '';
+            const product = globalProducts[item.productId]?.description || item.productId || '';
+            const qty = item.quantity !== undefined ? item.quantity : '0';
+            const reason = item.reasonForReturn || '';
+            const pOfficer = globalOfficers[item.purchasingOfficerId]?.name || item.purchasingOfficerId || '';
+            
+            const rawReturnDate = item.returnDate || '';
+            const formattedReturnDate = rawReturnDate ? rawReturnDate.replace(/-/g, '.') : '';
+            
+            const rawPurchaseDate = item.purchaseDate || '';
+            const formattedPurchaseDate = rawPurchaseDate ? rawPurchaseDate.replace(/-/g, '.') : '';
+
+            const store = globalStores[item.storeId]?.name || item.storeId || '';
+            const retDocNo = item.returnId || '';
+
+            return constructFormattedMsg(pCenter, shop3ps, product, qty, reason, pOfficer, formattedReturnDate, formattedPurchaseDate, store, retDocNo);
+        }
+
         async function copyFormattedText() {
             const text = generateFormattedText();
+            await writeTextToClipboard(text);
+        }
+
+        async function copyFormattedTextFromItem(key) {
+            const item = globalPendingReturnsMap[key];
+            if (!item) return;
+            const text = generateFormattedTextFromItem(item);
+            await writeTextToClipboard(text);
+        }
+
+        async function writeTextToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
                 showToast("WhatsApp message එක Type කරන ස්ථානයට ගොස් Paste කිරීමට හැක. | Formatted text copied to clipboard!");
@@ -762,6 +914,7 @@ Ret Doc No: (${retDocNo})`;
             db.ref('productReturns').orderByChild('storeId').equalTo(selectedStoreId).once('value', snapshot => {
                 const data = snapshot.val();
                 listContainer.innerHTML = '';
+                globalPendingReturnsMap = {};
 
                 if (!data) {
                     listContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-foreground);">No pending returns found for this branch.</p>';
@@ -769,9 +922,12 @@ Ret Doc No: (${retDocNo})`;
                 }
 
                 let itemsFound = false;
-                Object.values(data).forEach(item => {
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
                     if (item.status === 'pending') {
                         itemsFound = true;
+                        globalPendingReturnsMap[key] = item;
+
                         const productName = globalProducts[item.productId]?.description || item.productId;
                         const centerName = globalCenters[item.purchasingCenterId]?.name || 'N/A';
                         const officerName = globalOfficers[item.purchasingOfficerId]?.name || 'N/A';
@@ -779,14 +935,24 @@ Ret Doc No: (${retDocNo})`;
                         const div = document.createElement('div');
                         div.className = 'pending-item';
                         div.innerHTML = `
-                            <div><strong>Doc ID:</strong> ${item.returnId || 'N/A'}</div>
-                            <div><strong>Date:</strong> ${item.returnDate || 'N/A'}</div>
-                            <div><strong>Product:</strong> ${productName}</div>
-                            <div><strong>Qty:</strong> ${item.quantity}kg</div>
-                            <div><strong>Total:</strong> $${(item.totalReturnValue || 0).toFixed(2)}</div>
-                            <div><strong>Center:</strong> ${centerName}</div>
-                            <div><strong>Officer:</strong> ${officerName}</div>
-                            <div style="grid-column: 1 / -1;"><strong>Reason:</strong> ${item.reasonForReturn || 'N/A'}</div>
+                            <div class="pending-item-details">
+                                <div><strong>Doc ID:</strong> ${item.returnId || 'N/A'}</div>
+                                <div><strong>Date:</strong> ${item.returnDate || 'N/A'}</div>
+                                <div><strong>Product:</strong> ${productName}</div>
+                                <div><strong>Qty:</strong> ${item.quantity}kg</div>
+                                <div><strong>Total:</strong> $${(item.totalReturnValue || 0).toFixed(2)}</div>
+                                <div><strong>Center:</strong> ${centerName}</div>
+                                <div><strong>Officer:</strong> ${officerName}</div>
+                                <div style="grid-column: 1 / -1;"><strong>Reason:</strong> ${item.reasonForReturn || 'N/A'}</div>
+                            </div>
+                            <div class="pending-item-actions">
+                                <button type="button" class="btn btn-sm btn-outline view-details-btn" data-key="${key}">
+                                    <i data-lucide="eye"></i> View Details
+                                </button>
+                                <button type="button" class="btn btn-sm btn-copy copy-item-msg-btn" data-key="${key}">
+                                    <i data-lucide="copy"></i> Copy Whatsapp Msg
+                                </button>
+                            </div>
                         `;
                         listContainer.appendChild(div);
                     }
@@ -794,6 +960,25 @@ Ret Doc No: (${retDocNo})`;
 
                 if (!itemsFound) {
                     listContainer.innerHTML = '<p style="text-align:center; padding: 20px; color: var(--muted-foreground);">No pending returns found for this branch.</p>';
+                } else {
+                    lucide.createIcons();
+
+                    // Event Listeners for Dynamic Buttons
+                    document.querySelectorAll('.view-details-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const key = e.currentTarget.getAttribute('data-key');
+                            if (globalPendingReturnsMap[key]) {
+                                openDetailsModal(globalPendingReturnsMap[key]);
+                            }
+                        });
+                    });
+
+                    document.querySelectorAll('.copy-item-msg-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const key = e.currentTarget.getAttribute('data-key');
+                            copyFormattedTextFromItem(key);
+                        });
+                    });
                 }
             });
         });

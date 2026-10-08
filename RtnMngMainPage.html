@@ -1,0 +1,3310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Tracking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/lucide@latest/dist/lucide.css" rel="stylesheet">
+    <style>
+        :root {
+            --background: 220 20% 97%;
+            --foreground: 222 47% 11%;
+            --card: 0 0% 100%;
+            --card-foreground: 222 47% 11%;
+            --primary: 217 91% 50%;
+            --primary-foreground: 0 0% 100%;
+            --secondary: 220 14% 96%;
+            --secondary-foreground: 222 47% 11%;
+            --muted: 220 14% 96%;
+            --muted-foreground: 220 9% 46%;
+            --accent: 217 91% 95%;
+            --accent-foreground: 217 91% 40%;
+            --destructive: 0 84% 60%;
+            --destructive-foreground: 0 0% 100%;
+            --success: 142 76% 36%;
+            --success-foreground: 0 0% 100%;
+            --warning: 38 92% 50%;
+            --warning-foreground: 0 0% 100%;
+            --border: 220 13% 91%;
+            --input: 220 13% 91%;
+            --ring: 217 91% 50%;
+            --radius: 0.75rem;
+            --sidebar-background: 222 47% 11%;
+            --sidebar-foreground: 220 14% 96%;
+            --sidebar-primary: 217 91% 60%;
+            --sidebar-primary-foreground: 0 0% 100%;
+            --sidebar-accent: 222 47% 18%;
+            --sidebar-accent-foreground: 220 14% 96%;
+            --sidebar-border: 222 47% 18%;
+            --shadow-sm: 0 1px 2px 0 hsl(222 47% 11% / 0.05);
+            --shadow-md: 0 4px 6px -1px hsl(222 47% 11% / 0.1), 0 2px 4px -2px hsl(222 47% 11% / 0.1);
+            --shadow-lg: 0 10px 15px -3px hsl(222 47% 11% / 0.1), 0 4px 6px -4px hsl(222 47% 11% / 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: hsl(var(--background));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid hsl(var(--border));
+            border-top-color: hsl(var(--primary));
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Main layout */
+        .main-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: hsl(var(--sidebar-background));
+            color: hsl(var(--sidebar-foreground));
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            z-index: 50;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid hsl(var(--sidebar-border));
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar-toggle {
+            background: none;
+            border: none;
+            color: hsl(var(--sidebar-foreground));
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .sidebar-toggle:hover {
+            background: hsl(var(--sidebar-accent));
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            color: hsl(var(--sidebar-foreground) / 0.7);
+            text-decoration: none;
+            border-radius: calc(var(--radius) - 4px);
+            transition: all 0.2s;
+        }
+
+        .nav-item:hover {
+            background: hsl(var(--sidebar-accent));
+            color: hsl(var(--sidebar-foreground));
+        }
+
+        .nav-item.active {
+            background: hsl(var(--sidebar-primary));
+            color: hsl(var(--sidebar-primary-foreground));
+        }
+
+        .nav-item i {
+            width: 20px;
+            height: 20px;
+        }
+
+        .nav-item span {
+            white-space: nowrap;
+        }
+
+        .sidebar.collapsed .nav-item span {
+            display: none;
+        }
+
+        .sidebar-footer {
+            padding: 20px;
+            border-top: 1px solid hsl(var(--sidebar-border));
+            text-align: center;
+        }
+
+        .sidebar-footer-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-footer-subtitle {
+            font-size: 12px;
+            color: hsl(var(--sidebar-foreground) / 0.6);
+        }
+
+        /* Main content */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            min-width: 0;
+        }
+
+        .main-header {
+            padding: 24px 32px;
+            background: white;
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-left h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header-left p {
+            color: hsl(var(--muted-foreground));
+        }
+
+        .page-content {
+            padding: 24px 32px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: calc(var(--radius) - 4px);
+            font-weight: 500;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+        }
+
+        .btn-primary:hover {
+            background: hsl(217 91% 45%);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: hsl(var(--foreground));
+            border-color: hsl(var(--border));
+        }
+
+        .btn-outline:hover {
+            background: hsl(var(--secondary));
+        }
+
+        .btn-destructive {
+            background: hsl(var(--destructive));
+            color: hsl(var(--destructive-foreground));
+        }
+
+        .btn-destructive:hover {
+            background: hsl(0 84% 55%);
+        }
+
+        .btn-success {
+            background: hsl(var(--success));
+            color: hsl(var(--success-foreground));
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Stat cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.primary {
+            background: hsl(var(--primary) / 0.1);
+            color: hsl(var(--primary));
+        }
+
+        .stat-icon.success {
+            background: hsl(var(--success) / 0.1);
+            color: hsl(var(--success));
+        }
+
+        .stat-icon.destructive {
+            background: hsl(var(--destructive) / 0.1);
+            color: hsl(var(--destructive));
+        }
+
+        .stat-icon.warning {
+            background: hsl(var(--warning) / 0.1);
+            color: hsl(var(--warning));
+        }
+
+        .stat-content h3 {
+            font-size: 14px;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 4px;
+        }
+
+        .stat-content .value {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* Tables */
+        .table-container {
+            background: white;
+            border-radius: var(--radius);
+            border: 1px solid hsl(var(--border));
+            overflow: hidden;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .table-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            /* Soft shadow on whichever edge still has hidden columns, so a table
+               wider than the screen reads as "scroll for more" instead of "broken". */
+            background:
+                linear-gradient(to right, white 30%, rgba(255, 255, 255, 0)) 0 0,
+                linear-gradient(to left, white 30%, rgba(255, 255, 255, 0)) 100% 0,
+                radial-gradient(farthest-side at 0 50%, rgba(15, 23, 42, 0.15), rgba(15, 23, 42, 0)) 0 0,
+                radial-gradient(farthest-side at 100% 50%, rgba(15, 23, 42, 0.15), rgba(15, 23, 42, 0)) 100% 0;
+            background-repeat: no-repeat;
+            background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+            background-attachment: local, local, scroll, scroll;
+        }
+
+        .data-table {
+            width: 100%;
+            min-width: 640px;
+            border-collapse: collapse;
+            white-space: nowrap;
+        }
+
+        .data-table th {
+            background: hsl(var(--secondary));
+            padding: 16px;
+            text-align: left;
+            font-weight: 500;
+            font-size: 14px;
+            color: hsl(var(--muted-foreground));
+            border-bottom: 1px solid hsl(var(--border));
+        }
+
+        .data-table td {
+            padding: 16px;
+            border-bottom: 1px solid hsl(var(--border));
+            font-size: 14px;
+        }
+
+        .data-table tr:hover {
+            background: hsl(var(--secondary));
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-pending {
+            background: hsl(var(--warning) / 0.1);
+            color: hsl(var(--warning));
+        }
+
+        .badge-approved {
+            background: hsl(var(--success) / 0.1);
+            color: hsl(var(--success));
+        }
+
+        .badge-rejected {
+            background: hsl(var(--destructive) / 0.1);
+            color: hsl(var(--destructive));
+        }
+
+        .badge-completed {
+            background: hsl(var(--primary) / 0.1);
+            color: hsl(var(--primary));
+        }
+
+        /* Forms */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 16px;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .form-section {
+            grid-column: 1 / -1;
+            background: hsl(var(--secondary) / 0.5);
+            padding: 16px;
+            border-radius: calc(var(--radius) - 4px);
+            border: 1px solid hsl(var(--border));
+        }
+
+        .form-section h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: hsl(var(--primary));
+        }
+
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-field label {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-field input,
+        .form-field select,
+        .form-field textarea {
+            padding: 10px;
+            border: 1px solid hsl(var(--border));
+            border-radius: calc(var(--radius) - 4px);
+            font-size: 14px;
+            transition: all 0.2s;
+            width: 100%;
+            background: white;
+        }
+
+        .form-field input:focus,
+        .form-field select:focus,
+        .form-field textarea:focus {
+            outline: none;
+            border-color: hsl(var(--ring));
+            box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding-top: 24px;
+            border-top: 1px solid hsl(var(--border));
+            grid-column: 1 / -1;
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+        }
+
+        .toast {
+            background: white;
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.3s ease-out;
+            margin-bottom: 10px;
+            min-width: 300px;
+        }
+
+        .toast.success {
+            border-left: 4px solid hsl(var(--success));
+        }
+
+        .toast.error {
+            border-left: 4px solid hsl(var(--destructive));
+        }
+
+        .toast.warning {
+            border-left: 4px solid hsl(var(--warning));
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Filters */
+        .filters-container {
+            background: white;
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* The date-range group holds two inputs plus a separator, so it needs
+           more room than a single select — without this it was overflowing
+           into the next filter column instead of wrapping onto its own line. */
+        .filter-group:has(.date-range) {
+            flex: 1 1 280px;
+            min-width: 280px;
+        }
+
+        .filter-group label {
+            font-size: 14px;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .date-range {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .date-input {
+            padding: 8px;
+            border: 1px solid hsl(var(--border));
+            border-radius: 4px;
+            flex: 1 1 120px;
+            min-width: 0;
+        }
+
+        .filter-select {
+            padding: 8px;
+            border: 1px solid hsl(var(--border));
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        /* Additional Styles */
+        .loading-spinner.small {
+            width: 30px;
+            height: 30px;
+            border: 2px solid hsl(var(--border));
+            border-top-color: hsl(var(--primary));
+            margin: 20px auto;
+        }
+
+        .error-container {
+            text-align: center;
+            padding: 40px;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid hsl(var(--border));
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-icon:hover {
+            background: hsl(var(--secondary));
+        }
+
+        .btn-icon.edit-product:hover, .btn-icon.edit-store:hover, .btn-icon.edit-center:hover, .btn-icon.edit-officer:hover, .btn-icon.edit-return:hover {
+            background: hsl(var(--primary) / 0.1);
+            border-color: hsl(var(--primary));
+            color: hsl(var(--primary));
+        }
+
+        .btn-icon.delete-product:hover, .btn-icon.delete-store:hover, .btn-icon.delete-center:hover, .btn-icon.delete-officer:hover, .btn-icon.delete-return:hover {
+            background: hsl(var(--destructive) / 0.1);
+            border-color: hsl(var(--destructive));
+            color: hsl(var(--destructive));
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .stat-card-summary {
+            background: hsl(var(--secondary));
+            padding: 20px;
+            border-radius: var(--radius);
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: hsl(var(--muted-foreground));
+            margin-bottom: 8px;
+        }
+
+        .stat-value-large {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .text-success {
+            color: hsl(var(--success));
+        }
+
+        .text-destructive {
+            color: hsl(var(--destructive));
+        }
+
+        .text-warning {
+            color: hsl(var(--warning));
+        }
+
+        .text-muted {
+            color: hsl(var(--muted-foreground));
+        }
+
+        .mono {
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 12px;
+        }
+
+        .mt-3 {
+            margin-top: 12px;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .page-header .header-left h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-header .header-left p {
+            color: hsl(var(--muted-foreground));
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: hsl(var(--secondary));
+        }
+
+        /* Pagination Controls */
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .pagination-info {
+            font-size: 14px;
+            color: hsl(var(--muted-foreground));
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .btn-icon.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-icon.disabled:hover {
+            background: white;
+        }
+
+        .records-per-page {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .records-per-page label {
+            font-size: 14px;
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+        }
+
+        @media (max-width: 768px) {
+            /* Sidebar becomes a narrow icon rail by default and only overlays
+               the page as a full drawer when the toggle is tapped open — it no
+               longer pushes .main-content wider than the screen. */
+            .sidebar {
+                width: 70px;
+                position: fixed;
+                z-index: 100;
+            }
+
+            .sidebar:not(.collapsed) .nav-item span,
+            .sidebar:not(.collapsed) .sidebar-header h2,
+            .sidebar:not(.collapsed) .sidebar-footer {
+                display: none;
+            }
+
+            .sidebar.collapsed {
+                width: 250px;
+                box-shadow: var(--shadow-lg);
+            }
+
+            /* The open/close icon logic is written for the desktop rail, where
+               the default state is wide and the toggle narrows it. On mobile
+               the default is narrow and the toggle widens it instead, so the
+               chevron is mirrored here to still point the intuitive way. */
+            #sidebar-toggle i {
+                transform: scaleX(-1);
+            }
+
+            .main-content {
+                margin-left: 70px;
+                width: calc(100% - 70px);
+                min-width: 0;
+            }
+
+            .main-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+                padding: 20px;
+            }
+
+            .header-right {
+                width: 100%;
+            }
+
+            .header-right .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .page-content {
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal {
+                width: 95%;
+                margin: 10px;
+            }
+
+            .modal-header,
+            .modal-body {
+                padding: 16px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filters-container {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px;
+            }
+
+            .filter-group {
+                min-width: 100%;
+            }
+
+            .filter-group:has(.date-range) {
+                min-width: 100%;
+            }
+
+            .filter-actions {
+                justify-content: flex-start;
+            }
+
+            .export-buttons {
+                flex-direction: column;
+            }
+
+            .export-buttons .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            /* Tables stay full-featured (no columns hidden) but get a slightly
+               tighter grid and a lower minimum width, so more of the row is
+               visible before the horizontal scroll kicks in. */
+            .data-table {
+                min-width: 560px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 12px;
+                font-size: 13px;
+            }
+
+            .table-header {
+                padding: 16px;
+            }
+
+            .pagination-controls {
+                flex-direction: column;
+                gap: 12px;
+                align-items: stretch;
+            }
+
+            .records-per-page {
+                justify-content: center;
+            }
+
+            .pagination-buttons {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr 1fr;
+                padding: 16px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .data-table {
+                min-width: 480px;
+            }
+
+            .toast {
+                min-width: 0;
+                width: calc(100vw - 40px);
+            }
+
+            .toast-container {
+                left: 20px;
+                right: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Loading screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="loading-spinner"></div>
+            <p>Loading Return Tracking System...</p>
+        </div>
+
+        <!-- Main app layout -->
+        <div id="main-layout" class="main-layout hidden">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Returns Manager</h2>
+                    <button id="sidebar-toggle" class="sidebar-toggle">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                        <i data-lucide="layout-dashboard"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="#products" class="nav-item" data-page="products">
+                        <i data-lucide="package"></i>
+                        <span>Products</span>
+                    </a>
+                    <a href="#stores" class="nav-item" data-page="stores">
+                        <i data-lucide="store"></i>
+                        <span>Stores</span>
+                    </a>
+                    <a href="#centers" class="nav-item" data-page="centers">
+                        <i data-lucide="building-2"></i>
+                        <span>Purchasing Centers</span>
+                    </a>
+                    <a href="#officers" class="nav-item" data-page="officers">
+                        <i data-lucide="users"></i>
+                        <span>Purchasing Officers</span>
+                    </a>
+                    <a href="#returns" class="nav-item" data-page="returns">
+                        <i data-lucide="rotate-ccw"></i>
+                        <span>Product Returns</span>
+                    </a>
+                </nav>
+                <div class="sidebar-footer">
+                    <p class="sidebar-footer-title">Purchasing Division</p>
+                    <p class="sidebar-footer-subtitle">Developed By: Chandana Edirisinghe</p>
+                </div>
+            </aside>
+
+            <!-- Main content -->
+            <main class="main-content">
+                <header class="main-header">
+                    <div class="header-left">
+                        <h1 id="page-title">Dashboard</h1>
+                        <p id="page-description">Overview of your product returns management</p>
+                    </div>
+                    <div class="header-right">
+                        <button id="refresh-data" class="btn btn-outline">
+                            <i data-lucide="refresh-cw"></i>
+                            Refresh Data
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Page content will be loaded here -->
+                <div id="page-content" class="page-content">
+                    <!-- Content loaded dynamically -->
+                </div>
+            </main>
+        </div>
+
+        <!-- Toast container -->
+        <div id="toast-container" class="toast-container"></div>
+
+        <!-- Modal container -->
+        <div id="modal-container"></div>
+    </div>
+
+    <!-- Firebase SDK 8.10.0 (Compatible version) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <!-- External libraries -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+    // ============================================
+    // FIREBASE CONFIGURATION
+    // ============================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyCgZXx3pGXIFiN06_c_ZiB-Pi8j6RUtebs",
+        authDomain: "wickreturntracking.firebaseapp.com",
+        databaseURL: "https://wickreturntracking-default-rtdb.firebaseio.com",
+        projectId: "wickreturntracking",
+        storageBucket: "wickreturntracking.firebasestorage.app",
+        messagingSenderId: "917407325282",
+        appId: "1:917407325282:web:9e0f9dc199c286de0a853b",
+        measurementId: "G-DKSLDB8XK5"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // ============================================
+    // DATA MANAGER CLASS
+    // ============================================
+    class DataManager {
+        constructor(app) {
+            this.app = app;
+            this.initializeData();
+        }
+        
+        initializeData() {
+            this.listenToData('products');
+            this.listenToData('stores');
+            this.listenToData('purchasingCenters');
+            this.listenToData('purchasingOfficers');
+            this.listenToData('productReturns');
+        }
+        
+        listenToData(path) {
+            const dataRef = database.ref(path);
+            dataRef.on('value', (snapshot) => {
+                const data = snapshot.val() || {};
+                const dataArray = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+                this.app.data[path] = dataArray;
+                
+                if (this.app.currentPage === path.replace(/s$/, '')) {
+                    this.app.loadPage(this.app.currentPage);
+                }
+            });
+        }
+        
+        async addData(path, data) {
+            try {
+                const newRef = database.ref(path).push();
+                await newRef.set({
+                    ...data,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                this.app.showToast(`${path} added successfully`, 'success');
+                return newRef.key;
+            } catch (error) {
+                console.error('Error adding data:', error);
+                this.app.showToast(`Error adding ${path}: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        
+        async updateData(path, id, data) {
+            try {
+                const dataRef = database.ref(`${path}/${id}`);
+                await dataRef.update({
+                    ...data,
+                    updatedAt: new Date().toISOString()
+                });
+                this.app.showToast(`${path} updated successfully`, 'success');
+            } catch (error) {
+                console.error('Error updating data:', error);
+                this.app.showToast(`Error updating ${path}: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        
+        async deleteData(path, id) {
+            try {
+                const dataRef = database.ref(`${path}/${id}`);
+                await dataRef.remove();
+                this.app.showToast(`${path} deleted successfully`, 'success');
+            } catch (error) {
+                console.error('Error deleting data:', error);
+                this.app.showToast(`Error deleting ${path}: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+        
+        async addProduct(data) { return this.addData('products', data); }
+        async updateProduct(id, data) { return this.updateData('products', id, data); }
+        async deleteProduct(id) { return this.deleteData('products', id); }
+        
+        async addStore(data) { return this.addData('stores', data); }
+        async updateStore(id, data) { return this.updateData('stores', id, data); }
+        async deleteStore(id) { return this.deleteData('stores', id); }
+        
+        async addPurchasingCenter(data) { return this.addData('purchasingCenters', data); }
+        async updatePurchasingCenter(id, data) { return this.updateData('purchasingCenters', id, data); }
+        async deletePurchasingCenter(id) { return this.deleteData('purchasingCenters', id); }
+        
+        async addPurchasingOfficer(data) { return this.addData('purchasingOfficers', data); }
+        async updatePurchasingOfficer(id, data) { return this.updateData('purchasingOfficers', id, data); }
+        async deletePurchasingOfficer(id) { return this.deleteData('purchasingOfficers', id); }
+        
+        async addProductReturn(data) { return this.addData('productReturns', data); }
+        async updateProductReturn(id, data) { return this.updateData('productReturns', id, data); }
+        async deleteProductReturn(id) { return this.deleteData('productReturns', id); }
+        
+        getNextReturnId() {
+            const returns = this.app.data.productReturns || [];
+            if (returns.length === 0) return 'RET-0000001';
+            const lastId = returns[returns.length - 1].returnId || 'RET-0000000';
+            const num = parseInt(lastId.split('-')[1]) + 1;
+            return `RET-${num.toString().padStart(7, '0')}`;
+        }
+        
+        getNextOfficerCode() {
+            const officers = this.app.data.purchasingOfficers || [];
+            if (officers.length === 0) return 'PO-001';
+            const lastCode = officers[officers.length - 1].code || 'PO-000';
+            const num = parseInt(lastCode.split('-')[1]) + 1;
+            return `PO-${num.toString().padStart(3, '0')}`;
+        }
+    }
+
+    // ============================================
+    // MAIN APPLICATION
+    // ============================================
+    class ReturnTrackingApp {
+        constructor() {
+            this.currentPage = 'dashboard';
+            this.data = {
+                products: [],
+                stores: [],
+                purchasingCenters: [],
+                purchasingOfficers: [],
+                productReturns: []
+            };
+            
+            // Pagination settings
+            this.pagination = {
+                currentPage: 1,
+                recordsPerPage: 10,
+                availablePageSizes: [5, 10, 15, 25]
+            };
+            
+            this.dataManager = null;
+            this.currentFilters = {
+                dateFrom: '',
+                dateTo: '',
+                status: '',
+                storeId: '',
+                centerId: '',
+                shop3ps: ''
+            };
+            this.initializeApp();
+        }
+        
+        async initializeApp() {
+            this.dataManager = new DataManager(this);
+            this.initializeUI();
+            this.showMainApp();
+            this.loadPage('dashboard');
+        }
+        
+        initializeUI() {
+            // Sidebar toggle
+            document.getElementById('sidebar-toggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('collapsed');
+                const icon = document.querySelector('#sidebar-toggle i');
+                if (document.getElementById('sidebar').classList.contains('collapsed')) {
+                    icon.setAttribute('data-lucide', 'chevron-right');
+                } else {
+                    icon.setAttribute('data-lucide', 'chevron-left');
+                }
+                lucide.createIcons();
+            });
+            
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = item.getAttribute('data-page');
+                    this.loadPage(page);
+                    
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                });
+            });
+            
+            // Refresh data button
+            document.getElementById('refresh-data').addEventListener('click', () => {
+                this.showToast('Refreshing data...', 'success');
+                this.loadPage(this.currentPage);
+            });
+            
+            window.addEventListener('hashchange', () => {
+                const page = window.location.hash.substring(1) || 'dashboard';
+                this.loadPage(page);
+            });
+            
+            lucide.createIcons();
+        }
+        
+        showMainApp() {
+            setTimeout(() => {
+                document.getElementById('loading-screen').classList.add('hidden');
+                document.getElementById('main-layout').classList.remove('hidden');
+            }, 1000);
+        }
+        
+        async loadPage(page) {
+            this.currentPage = page;
+            window.location.hash = page;
+            
+            const titles = {
+                dashboard: 'Dashboard',
+                products: 'Products',
+                stores: 'Stores',
+                centers: 'Purchasing Centers',
+                officers: 'Purchasing Officers',
+                returns: 'Product Returns'
+            };
+            
+            const descriptions = {
+                dashboard: 'Overview of your product returns management',
+                products: 'Manage your product catalog',
+                stores: 'Manage your store locations',
+                centers: 'Manage your purchasing centers',
+                officers: 'Manage purchasing officers assigned to purchasing centers',
+                returns: 'Track and manage product returns with refund calculations'
+            };
+            
+            document.getElementById('page-title').textContent = titles[page] || page;
+            document.getElementById('page-description').textContent = descriptions[page] || '';
+            
+            const pageContent = document.getElementById('page-content');
+            pageContent.innerHTML = '<div class="loading-spinner small"></div>';
+            
+            try {
+                let content;
+                switch(page) {
+                    case 'dashboard':
+                        content = this.loadDashboard();
+                        break;
+                    case 'products':
+                        content = this.loadProducts();
+                        break;
+                    case 'stores':
+                        content = this.loadStores();
+                        break;
+                    case 'centers':
+                        content = this.loadPurchasingCenters();
+                        break;
+                    case 'officers':
+                        content = this.loadPurchasingOfficers();
+                        break;
+                    case 'returns':
+                        content = this.loadProductReturns();
+                        break;
+                    default:
+                        content = '<div class="not-found"><h2>Page Not Found</h2></div>';
+                }
+                
+                pageContent.innerHTML = content;
+                lucide.createIcons();
+                this.attachPageListeners(page);
+                
+            } catch (error) {
+                console.error('Error loading page:', error);
+                this.showToast('Error loading page: ' + error.message, 'error');
+                pageContent.innerHTML = `
+                    <div class="error-container">
+                        <i data-lucide="alert-circle" style="width: 48px; height: 48px; color: hsl(var(--destructive));"></i>
+                        <h3>Error Loading Page</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="app.loadPage('${page}')">
+                            <i data-lucide="refresh-cw"></i>
+                            Try Again
+                        </button>
+                    </div>
+                `;
+                lucide.createIcons();
+            }
+        }
+        
+        attachPageListeners(page) {
+            switch(page) {
+                case 'products':
+                    this.attachProductsListeners();
+                    break;
+                case 'stores':
+                    this.attachStoresListeners();
+                    break;
+                case 'centers':
+                    this.attachCentersListeners();
+                    break;
+                case 'officers':
+                    this.attachOfficersListeners();
+                    break;
+                case 'returns':
+                    this.attachReturnsListeners();
+                    break;
+            }
+        }
+        
+        attachProductsListeners() {
+            document.getElementById('add-product')?.addEventListener('click', () => this.showProductForm());
+            document.getElementById('add-first-product')?.addEventListener('click', () => this.showProductForm());
+            
+            document.querySelectorAll('.edit-product').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const productId = e.currentTarget.dataset.id;
+                    const product = this.data.products.find(p => p.id === productId);
+                    this.showProductForm(product);
+                });
+            });
+            
+            document.querySelectorAll('.delete-product').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const productId = e.currentTarget.dataset.id;
+                    const product = this.data.products.find(p => p.id === productId);
+                    if (confirm(`Are you sure you want to delete product "${product.description}"?`)) {
+                        await this.dataManager.deleteProduct(productId);
+                    }
+                });
+            });
+        }
+        
+        attachStoresListeners() {
+            document.getElementById('add-store')?.addEventListener('click', () => this.showStoreForm());
+            document.getElementById('add-first-store')?.addEventListener('click', () => this.showStoreForm());
+            
+            document.querySelectorAll('.edit-store').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const storeId = e.currentTarget.dataset.id;
+                    const store = this.data.stores.find(s => s.id === storeId);
+                    this.showStoreForm(store);
+                });
+            });
+            
+            document.querySelectorAll('.delete-store').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const storeId = e.currentTarget.dataset.id;
+                    const store = this.data.stores.find(s => s.id === storeId);
+                    if (confirm(`Are you sure you want to delete store "${store.name}"?`)) {
+                        await this.dataManager.deleteStore(storeId);
+                    }
+                });
+            });
+        }
+        
+        attachCentersListeners() {
+            document.getElementById('add-center')?.addEventListener('click', () => this.showCenterForm());
+            document.getElementById('add-first-center')?.addEventListener('click', () => this.showCenterForm());
+            
+            document.querySelectorAll('.edit-center').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const centerId = e.currentTarget.dataset.id;
+                    const center = this.data.purchasingCenters.find(c => c.id === centerId);
+                    this.showCenterForm(center);
+                });
+            });
+            
+            document.querySelectorAll('.delete-center').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const centerId = e.currentTarget.dataset.id;
+                    const center = this.data.purchasingCenters.find(c => c.id === centerId);
+                    if (confirm(`Are you sure you want to delete purchasing center "${center.name}"?`)) {
+                        await this.dataManager.deletePurchasingCenter(centerId);
+                    }
+                });
+            });
+        }
+        
+        attachOfficersListeners() {
+            document.getElementById('add-officer')?.addEventListener('click', () => this.showOfficerForm());
+            document.getElementById('add-first-officer')?.addEventListener('click', () => this.showOfficerForm());
+            
+            document.querySelectorAll('.edit-officer').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const officerId = e.currentTarget.dataset.id;
+                    const officer = this.data.purchasingOfficers.find(o => o.id === officerId);
+                    this.showOfficerForm(officer);
+                });
+            });
+            
+            document.querySelectorAll('.delete-officer').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const officerId = e.currentTarget.dataset.id;
+                    const officer = this.data.purchasingOfficers.find(o => o.id === officerId);
+                    if (confirm(`Are you sure you want to delete officer "${officer.name}"?`)) {
+                        await this.dataManager.deletePurchasingOfficer(officerId);
+                    }
+                });
+            });
+        }
+        
+        attachReturnsListeners() {
+            document.getElementById('add-return')?.addEventListener('click', () => this.showReturnForm());
+            document.getElementById('add-first-return')?.addEventListener('click', () => this.showReturnForm());
+            
+            document.querySelectorAll('.edit-return').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const returnId = e.currentTarget.dataset.id;
+                    const returnItem = this.data.productReturns.find(r => r.id === returnId);
+                    this.showReturnForm(returnItem);
+                });
+            });
+            
+            document.querySelectorAll('.delete-return').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const returnId = e.currentTarget.dataset.id;
+                    const returnItem = this.data.productReturns.find(r => r.id === returnId);
+                    if (confirm(`Are you sure you want to delete return "${returnItem.returnId}"?`)) {
+                        await this.dataManager.deleteProductReturn(returnId);
+                    }
+                });
+            });
+            
+            document.getElementById('apply-filters')?.addEventListener('click', () => this.applyFilters());
+            document.getElementById('clear-filters')?.addEventListener('click', () => this.clearFilters());
+            
+            document.getElementById('export-excel')?.addEventListener('click', () => this.exportToExcel());
+            document.getElementById('export-pdf')?.addEventListener('click', () => this.exportToPDF());
+            
+            document.getElementById('records-per-page')?.addEventListener('change', (e) => {
+                this.pagination.recordsPerPage = parseInt(e.target.value);
+                this.pagination.currentPage = 1;
+                this.updateReturnsTable();
+            });
+            
+            document.getElementById('first-page')?.addEventListener('click', () => this.goToPage(1));
+            document.getElementById('prev-page')?.addEventListener('click', () => this.goToPage(this.pagination.currentPage - 1));
+            document.getElementById('next-page')?.addEventListener('click', () => this.goToPage(this.pagination.currentPage + 1));
+            document.getElementById('last-page')?.addEventListener('click', () => {
+                const filteredReturns = this.getFilteredReturns();
+                const totalPages = Math.ceil(filteredReturns.length / this.pagination.recordsPerPage);
+                this.goToPage(totalPages);
+            });
+            
+            document.getElementById('first-page-bottom')?.addEventListener('click', () => this.goToPage(1));
+            document.getElementById('prev-page-bottom')?.addEventListener('click', () => this.goToPage(this.pagination.currentPage - 1));
+            document.getElementById('next-page-bottom')?.addEventListener('click', () => this.goToPage(this.pagination.currentPage + 1));
+            document.getElementById('last-page-bottom')?.addEventListener('click', () => {
+                const filteredReturns = this.getFilteredReturns();
+                const totalPages = Math.ceil(filteredReturns.length / this.pagination.recordsPerPage);
+                this.goToPage(totalPages);
+            });
+            
+            this.attachReturnsTableListeners();
+        }
+        
+        goToPage(pageNumber) {
+            const filteredReturns = this.getFilteredReturns();
+            const totalPages = Math.ceil(filteredReturns.length / this.pagination.recordsPerPage);
+            
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageNumber > totalPages) pageNumber = totalPages;
+            
+            this.pagination.currentPage = pageNumber;
+            this.updateReturnsTable();
+        }
+        
+        applyFilters() {
+            const dateFrom = document.getElementById('filter-date-from')?.value || '';
+            const dateTo = document.getElementById('filter-date-to')?.value || '';
+            const status = document.getElementById('filter-status')?.value || '';
+            const storeId = document.getElementById('filter-store')?.value || '';
+            const centerId = document.getElementById('filter-center')?.value || '';
+            const shop3ps = document.getElementById('filter-shop')?.value || '';
+            
+            this.currentFilters = {
+                dateFrom,
+                dateTo,
+                status,
+                storeId,
+                centerId,
+                shop3ps
+            };
+            
+            this.pagination.currentPage = 1;
+            this.updateReturnsTable();
+            this.showToast('Filters applied', 'success');
+        }
+        
+        clearFilters() {
+            document.getElementById('filter-date-from').value = '';
+            document.getElementById('filter-date-to').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-store').value = '';
+            document.getElementById('filter-center').value = '';
+            document.getElementById('filter-shop').value = '';
+            
+            this.currentFilters = {
+                dateFrom: '',
+                dateTo: '',
+                status: '',
+                storeId: '',
+                centerId: '',
+                shop3ps: ''
+            };
+            
+            this.pagination.currentPage = 1;
+            this.updateReturnsTable();
+            this.showToast('Filters cleared', 'success');
+        }
+        
+        getFilteredReturns() {
+            let returns = this.data.productReturns || [];
+            
+            if (this.currentFilters.dateFrom) {
+                const fromDate = new Date(this.currentFilters.dateFrom);
+                returns = returns.filter(r => new Date(r.returnDate) >= fromDate);
+            }
+            
+            if (this.currentFilters.dateTo) {
+                const toDate = new Date(this.currentFilters.dateTo);
+                returns = returns.filter(r => new Date(r.returnDate) <= toDate);
+            }
+            
+            if (this.currentFilters.status) {
+                returns = returns.filter(r => r.status === this.currentFilters.status);
+            }
+            
+            if (this.currentFilters.storeId) {
+                returns = returns.filter(r => r.storeId === this.currentFilters.storeId);
+            }
+            
+            if (this.currentFilters.centerId) {
+                returns = returns.filter(r => r.purchasingCenterId === this.currentFilters.centerId);
+            }
+            
+            if (this.currentFilters.shop3ps) {
+                const searchTerm = this.currentFilters.shop3ps.toLowerCase();
+                returns = returns.filter(r => 
+                    r.shop3ps && r.shop3ps.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            return returns;
+        }
+        
+        updateReturnsTable() {
+            const filteredReturns = this.getFilteredReturns();
+            const totalRecords = filteredReturns.length;
+            const totalPages = Math.ceil(totalRecords / this.pagination.recordsPerPage);
+            
+            if (this.pagination.currentPage > totalPages && totalPages > 0) {
+                this.pagination.currentPage = totalPages;
+            } else if (totalPages === 0) {
+                this.pagination.currentPage = 1;
+            }
+            
+            const startIndex = (this.pagination.currentPage - 1) * this.pagination.recordsPerPage;
+            const endIndex = startIndex + this.pagination.recordsPerPage;
+            const paginatedReturns = filteredReturns.slice(startIndex, endIndex);
+            
+            const products = this.data.products || [];
+            const stores = this.data.stores || [];
+            const centers = this.data.purchasingCenters || [];
+            const officers = this.data.purchasingOfficers || [];
+            
+            const tableBody = document.querySelector('.returns-page .data-table tbody');
+            if (!tableBody) return;
+            
+            if (paginatedReturns.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="16" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                            <i data-lucide="rotate-ccw" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                            <p>No returns found with current filters</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                tableBody.innerHTML = paginatedReturns.map(returnItem => {
+                    const product = products.find(p => p.id === returnItem.productId);
+                    const store = stores.find(s => s.id === returnItem.storeId);
+                    const center = centers.find(c => c.id === returnItem.purchasingCenterId);
+                    const officer = officers.find(o => o.id === returnItem.purchasingOfficerId);
+                    const statusClass = returnItem.status ? `badge-${returnItem.status}` : 'badge-pending';
+                    const statusText = returnItem.status ? returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) : 'Pending';
+                    
+                    return `
+                        <tr data-id="${returnItem.id}">
+                            <td><span class="mono">${returnItem.returnId || ''}</span></td>
+                            <td>${returnItem.returnDate ? new Date(returnItem.returnDate).toLocaleDateString() : ''}</td>
+                            <td><span class="mono">${product?.code || 'Unknown'}</span></td>
+                            <td>${product?.description || 'Unknown'}</td>
+                            <td>${product?.unit || '-'}</td>
+                            <td>${returnItem.quantity || 0}</td>
+                            <td>${returnItem.nonUsableQuantity || 0}</td>
+                            <td>$${(returnItem.pricePerUnit || 0).toFixed(2)}</td>
+                            <td><strong>$${(returnItem.totalReturnValue || 0).toFixed(2)}</strong></td>
+                            <td><span class="text-success">$${(returnItem.refundableValue || 0).toFixed(2)}</span></td>
+                            <td><span class="text-destructive">$${(returnItem.nonUsableValue || 0).toFixed(2)}</span></td>
+                            <td>${returnItem.shop3ps || '-'}</td>
+                            <td>${center?.name || 'Unknown'}</td>
+                            <td>${officer?.name || 'Unknown'}</td>
+                            <td><span class="badge ${statusClass}">${statusText}</span></td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon edit-return" data-id="${returnItem.id}" title="Edit">
+                                        <i data-lucide="edit"></i>
+                                    </button>
+                                    <button class="btn-icon delete-return" data-id="${returnItem.id}" title="Delete">
+                                        <i data-lucide="trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+                
+                this.attachReturnsTableListeners();
+            }
+            
+            this.updatePaginationControls(totalRecords, totalPages, startIndex, endIndex);
+            this.updateReturnsSummary(filteredReturns);
+            lucide.createIcons();
+        }
+        
+        updatePaginationControls(totalRecords, totalPages, startIndex, endIndex) {
+            const paginationInfo = document.querySelector('.pagination-info');
+            if (paginationInfo) {
+                paginationInfo.textContent = `Showing ${totalRecords > 0 ? startIndex + 1 : 0} to ${Math.min(endIndex, totalRecords)} of ${totalRecords} entries`;
+            }
+            
+            const pageDisplay = document.querySelectorAll('.pagination-buttons span');
+            pageDisplay.forEach(span => {
+                if (span.textContent.includes('Page')) {
+                    span.textContent = `Page ${this.pagination.currentPage} of ${totalPages || 1}`;
+                }
+            });
+            
+            const updateButtonState = (buttonId, isDisabled) => {
+                const button = document.getElementById(buttonId);
+                if (button) {
+                    button.disabled = isDisabled;
+                    button.classList.toggle('disabled', isDisabled);
+                }
+            };
+            
+            updateButtonState('first-page', this.pagination.currentPage === 1);
+            updateButtonState('prev-page', this.pagination.currentPage === 1);
+            updateButtonState('next-page', this.pagination.currentPage >= totalPages);
+            updateButtonState('last-page', this.pagination.currentPage >= totalPages);
+            
+            updateButtonState('first-page-bottom', this.pagination.currentPage === 1);
+            updateButtonState('prev-page-bottom', this.pagination.currentPage === 1);
+            updateButtonState('next-page-bottom', this.pagination.currentPage >= totalPages);
+            updateButtonState('last-page-bottom', this.pagination.currentPage >= totalPages);
+        }
+        
+        updateReturnsSummary(filteredReturns) {
+            const summaryContainer = document.querySelector('.returns-page .summary-stats');
+            if (!summaryContainer) return;
+            
+            const totalReturnValue = filteredReturns.reduce((sum, r) => sum + (r.totalReturnValue || 0), 0);
+            const totalRefundableValue = filteredReturns.reduce((sum, r) => sum + (r.refundableValue || 0), 0);
+            const totalNonRefundableValue = filteredReturns.reduce((sum, r) => sum + (r.nonUsableValue || 0), 0);
+            
+            summaryContainer.innerHTML = `
+                <div class="stat-card-summary">
+                    <div class="stat-label">Total Returns Count</div>
+                    <div class="stat-value-large">${filteredReturns.length}</div>
+                </div>
+                <div class="stat-card-summary">
+                    <div class="stat-label">Total Return Value</div>
+                    <div class="stat-value-large">$${totalReturnValue.toFixed(2)}</div>
+                </div>
+                <div class="stat-card-summary">
+                    <div class="stat-label">Total Refundable Value</div>
+                    <div class="stat-value-large text-success">$${totalRefundableValue.toFixed(2)}</div>
+                </div>
+                <div class="stat-card-summary">
+                    <div class="stat-label">Total Non-Refundable Value</div>
+                    <div class="stat-value-large text-destructive">$${totalNonRefundableValue.toFixed(2)}</div>
+                </div>
+            `;
+        }
+        
+        attachReturnsTableListeners() {
+            document.querySelectorAll('.edit-return').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const returnId = e.currentTarget.dataset.id;
+                    const returnItem = this.data.productReturns.find(r => r.id === returnId);
+                    this.showReturnForm(returnItem);
+                });
+            });
+            
+            document.querySelectorAll('.delete-return').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const returnId = e.currentTarget.dataset.id;
+                    const returnItem = this.data.productReturns.find(r => r.id === returnId);
+                    if (confirm(`Are you sure you want to delete return "${returnItem.returnId}"?`)) {
+                        await this.dataManager.deleteProductReturn(returnId);
+                    }
+                });
+            });
+        }
+        
+        exportToExcel() {
+            const filteredReturns = this.getFilteredReturns();
+            if (filteredReturns.length === 0) {
+                this.showToast('No data to export', 'warning');
+                return;
+            }
+            
+            const products = this.data.products || [];
+            const stores = this.data.stores || [];
+            const centers = this.data.purchasingCenters || [];
+            const officers = this.data.purchasingOfficers || [];
+            
+            const excelData = filteredReturns.map(returnItem => {
+                const product = products.find(p => p.id === returnItem.productId);
+                const store = stores.find(s => s.id === returnItem.storeId);
+                const center = centers.find(c => c.id === returnItem.purchasingCenterId);
+                const officer = officers.find(o => o.id === returnItem.purchasingOfficerId);
+                
+                return {
+                    'Doc No.': returnItem.returnId || '',
+                    'Return Date': returnItem.returnDate ? new Date(returnItem.returnDate).toLocaleDateString() : '',
+                    'Purchased Date': returnItem.purchaseDate ? new Date(returnItem.purchaseDate).toLocaleDateString() : '',
+                    'Item Code': product?.code || 'Unknown',
+                    'Description': product?.description || 'Unknown',
+                    'Unit': product?.unit || '-',
+                    'Return Qty': returnItem.quantity || 0,
+                    'Non-Ref Qty': returnItem.nonUsableQuantity || 0,
+                    'Unit Price': returnItem.pricePerUnit || 0,
+                    'Total Value': returnItem.totalReturnValue || 0,
+                    'Refundable': returnItem.refundableValue || 0,
+                    'Non-Ref Value': returnItem.nonUsableValue || 0,
+                    'Shop (3PS)': returnItem.shop3ps || '',
+                    'Stores': store?.name || 'Unknown',
+                    'P. Center': center?.name || 'Unknown',
+                    'P. Officer': officer?.name || 'Unknown',
+                    'Reason': returnItem.reasonForReturn || '',
+                    'Status': returnItem.status ? returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) : 'Pending'
+                };
+            });
+            
+            const ws = XLSX.utils.json_to_sheet(excelData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Product Returns');
+            
+            const date = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `Product_Returns_${date}.xlsx`);
+            
+            this.showToast('Export to Excel completed successfully', 'success');
+        }
+        
+        exportToPDF() {
+            const filteredReturns = this.getFilteredReturns();
+            if (filteredReturns.length === 0) {
+                this.showToast('No data to export', 'warning');
+                return;
+            }
+            
+            const products = this.data.products || [];
+            const stores = this.data.stores || [];
+            const centers = this.data.purchasingCenters || [];
+            const officers = this.data.purchasingOfficers || [];
+            
+            const totalReturnValue = filteredReturns.reduce((sum, r) => sum + (r.totalReturnValue || 0), 0);
+            const totalRefundableValue = filteredReturns.reduce((sum, r) => sum + (r.refundableValue || 0), 0);
+            const totalNonRefundableValue = filteredReturns.reduce((sum, r) => sum + (r.nonUsableValue || 0), 0);
+            
+            const dates = filteredReturns.map(r => new Date(r.returnDate)).filter(d => !isNaN(d));
+            const minDate = dates.length > 0 ? new Date(Math.min(...dates)) : new Date();
+            const maxDate = dates.length > 0 ? new Date(Math.max(...dates)) : new Date();
+            
+            const formatDate = (date) => `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+            
+            const currentDate = new Date();
+            const formattedCurrentDate = `${currentDate.getMonth() + 1}/${currentDate.getDate()}/${currentDate.getFullYear()} ${currentDate.getHours()}:${currentDate.getMinutes().toString().padStart(2, '0')}:${currentDate.getSeconds().toString().padStart(2, '0')} ${currentDate.getHours() >= 12 ? 'PM' : 'AM'}`;
+            
+            const tableData = filteredReturns.map(returnItem => {
+                const product = products.find(p => p.id === returnItem.productId);
+                const store = stores.find(s => s.id === returnItem.storeId);
+                const center = centers.find(c => c.id === returnItem.purchasingCenterId);
+                const officer = officers.find(o => o.id === returnItem.purchasingOfficerId);
+                
+                const returnDate = returnItem.returnDate ? formatDate(new Date(returnItem.returnDate)) : '';
+                let statusText = returnItem.status ? returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) : 'Pending';
+                
+                return [
+                    returnItem.returnId || '',
+                    returnDate,
+                    product?.code || 'Unknown',
+                    product?.description || 'Unknown',
+                    `$${(returnItem.pricePerUnit || 0).toFixed(2)}`,
+                    `$${(returnItem.totalReturnValue || 0).toFixed(2)}`,
+                    `$${(returnItem.refundableValue || 0).toFixed(2)}`,
+                    `$${(returnItem.nonUsableValue || 0).toFixed(2)}`,
+                    store?.name || 'Unknown',
+                    returnItem.shop3ps || '',
+                    center?.name || 'Unknown',
+                    officer?.name || 'Unknown',
+                    statusText
+                ];
+            });
+            
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
+            
+            doc.setFont('helvetica');
+            doc.setFontSize(16);
+            doc.setTextColor(0);
+            doc.text('Product Returns Report', 148.5, 20, { align: 'center' });
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Date Range: ${formatDate(minDate)} - ${formatDate(maxDate)}`, 148.5, 30, { align: 'center' });
+            doc.text(`Generated: ${formattedCurrentDate}`, 148.5, 35, { align: 'center' });
+            
+            doc.setLineWidth(0.5);
+            doc.line(20, 40, 277, 40);
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            doc.text('Total Return Value', 20, 50);
+            doc.text(`$${totalReturnValue.toFixed(2)}`, 60, 50);
+            
+            doc.text('Refundable Value', 20, 60);
+            doc.text(`$${totalRefundableValue.toFixed(2)}`, 60, 60);
+            
+            doc.text('Non-Refundable Value', 20, 70);
+            doc.text(`$${totalNonRefundableValue.toFixed(2)}`, 60, 70);
+            
+            doc.line(20, 75, 277, 75);
+            
+            const columnWidths = {
+                0: 18, 1: 18, 2: 15, 3: 30, 4: 18, 5: 18, 6: 18, 7: 18, 8: 22, 9: 22, 10: 22, 11: 22, 12: 15
+            };
+            
+            doc.autoTable({
+                startY: 80,
+                head: [[
+                    'Doc No.', 'Return Date', 'Item Code', 'Description', 'Unit Price', 'Total Value', 
+                    'Refundable', 'Non-Ref Value', 'Store', 'Shop (3PS)', 'P. Center', 'P. Officer', 'Status'
+                ]],
+                body: tableData,
+                theme: 'grid',
+                headStyles: { 
+                    fillColor: [255, 255, 255], 
+                    textColor: 0,
+                    fontStyle: 'bold',
+                    lineWidth: 0.5,
+                    lineColor: [0, 0, 0],
+                    fontSize: 8,
+                    halign: 'center'
+                },
+                bodyStyles: { 
+                    fontSize: 7,
+                    cellPadding: 2,
+                    lineWidth: 0.1,
+                    lineColor: [200, 200, 200],
+                    overflow: 'linebreak'
+                },
+                styles: { 
+                    fontSize: 7,
+                    cellPadding: 2,
+                    overflow: 'linebreak',
+                    halign: 'left'
+                },
+                columnStyles: columnWidths,
+                margin: { top: 80, left: 20, right: 20 },
+                tableWidth: 'auto',
+                didDrawPage: (data) => {
+                    doc.setFontSize(8);
+                    doc.setTextColor(100);
+                    doc.text(`Page ${data.pageNumber}`, data.settings.margin.left, doc.internal.pageSize.height - 10);
+                }
+            });
+            
+            const finalY = doc.lastAutoTable ? doc.lastAutoTable.finalY : 150;
+            
+            doc.line(20, finalY + 5, 277, finalY + 5);
+            doc.setFontSize(10);
+            doc.setTextColor(100);
+            doc.text(`Total Records: ${filteredReturns.length}`, 20, finalY + 15);
+            doc.text(`Total Return Value: $${totalReturnValue.toFixed(2)}`, 20, finalY + 20);
+            
+            doc.line(20, finalY + 25, 277, finalY + 25);
+            doc.setTextColor(0, 150, 0);
+            doc.text(`Total Refundable: $${totalRefundableValue.toFixed(2)}`, 20, finalY + 35);
+            
+            doc.line(20, finalY + 40, 277, finalY + 40);
+            doc.setTextColor(220, 0, 0);
+            doc.text(`Total Non-Refundable: $${totalNonRefundableValue.toFixed(2)}`, 20, finalY + 50);
+            
+            const date = new Date().toISOString().split('T')[0];
+            doc.save(`Product_Returns_${date}.pdf`);
+            
+            this.showToast('Export to PDF completed successfully', 'success');
+        }
+
+        loadDashboard() {
+            const returns = this.data.productReturns || [];
+            const products = this.data.products || [];
+            
+            const totalReturnValue = returns.reduce((sum, r) => sum + (r.totalReturnValue || 0), 0);
+            const totalRefundableValue = returns.reduce((sum, r) => sum + (r.refundableValue || 0), 0);
+            const totalNonRefundableValue = returns.reduce((sum, r) => sum + (r.nonUsableValue || 0), 0);
+            const pendingReturns = returns.filter(r => r.status === 'pending').length;
+            
+            const recentReturns = returns
+                .sort((a, b) => new Date(b.returnDate || 0) - new Date(a.returnDate || 0))
+                .slice(0, 10);
+            
+            return `
+                <div class="dashboard">
+                    <div class="stats-grid">
+                        <div class="card stat-card">
+                            <div class="stat-icon primary">
+                                <i data-lucide="dollar-sign"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Total Return Value</h3>
+                                <div class="value">$${totalReturnValue.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon success">
+                                <i data-lucide="dollar-sign"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Refundable Value</h3>
+                                <div class="value">$${totalRefundableValue.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon destructive">
+                                <i data-lucide="alert-triangle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Non-Refundable Value</h3>
+                                <div class="value">$${totalNonRefundableValue.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <div class="card stat-card">
+                            <div class="stat-icon warning">
+                                <i data-lucide="rotate-ccw"></i>
+                            </div>
+                            <div class="stat-content">
+                                <h3>Pending Returns</h3>
+                                <div class="value">${pendingReturns}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-container">
+                        <div class="table-header">
+                            <h3>Recent Returns</h3>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Doc No.</th>
+                                        <th>Return Date</th>
+                                        <th>Item Code</th>
+                                        <th>Description</th>
+                                        <th>Total Value</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${recentReturns.map(returnItem => {
+                                        const product = products.find(p => p.id === returnItem.productId);
+                                        const statusClass = returnItem.status ? `badge-${returnItem.status}` : 'badge-pending';
+                                        const statusText = returnItem.status ? returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) : 'Pending';
+                                        
+                                        return `
+                                            <tr>
+                                                <td>${returnItem.returnId || 'N/A'}</td>
+                                                <td>${returnItem.returnDate ? new Date(returnItem.returnDate).toLocaleDateString() : 'N/A'}</td>
+                                                <td>${product?.code || 'Unknown'}</td>
+                                                <td>${product?.description || 'Unknown'}</td>
+                                                <td>$${(returnItem.totalReturnValue || 0).toFixed(2)}</td>
+                                                <td><span class="badge ${statusClass}">${statusText}</span></td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${recentReturns.length === 0 ? `
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                                                <i data-lucide="package" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                                <p>No returns recorded yet</p>
+                                            </td>
+                                        </tr>
+                                    ` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="card mt-4">
+                        <div class="table-header">
+                            <h3>Quick Stats</h3>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="stat-card-summary">
+                                <div class="stat-label">Total Products</div>
+                                <div class="stat-value-large">${products.length}</div>
+                            </div>
+                            <div class="stat-card-summary">
+                                <div class="stat-label">Active Products</div>
+                                <div class="stat-value-large">${products.filter(p => p.status === 'active').length}</div>
+                            </div>
+                            <div class="stat-card-summary">
+                                <div class="stat-label">Total Returns</div>
+                                <div class="stat-value-large">${returns.length}</div>
+                            </div>
+                            <div class="stat-card-summary">
+                                <div class="stat-label">Completed Returns</div>
+                                <div class="stat-value-large">${returns.filter(r => r.status === 'completed').length}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        loadProducts() {
+            const products = this.data.products || [];
+            
+            return `
+                <div class="products-page">
+                    <div class="page-header">
+                        <div class="header-left">
+                            <h2>Products</h2>
+                            <p>Manage your product catalog</p>
+                        </div>
+                        <div class="header-right">
+                            <button class="btn btn-primary" id="add-product">
+                                <i data-lucide="plus"></i>
+                                Add Product
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Product Code</th>
+                                        <th>Description</th>
+                                        <th>Unit</th>
+                                        <th>Remarks</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${products.map(product => {
+                                        const statusClass = product.status === 'active' ? 'badge-success' : 'badge-destructive';
+                                        const statusText = product.status === 'active' ? 'Active' : 'Inactive';
+                                        
+                                        return `
+                                            <tr data-id="${product.id}">
+                                                <td>${product.code || ''}</td>
+                                                <td>${product.description || ''}</td>
+                                                <td>${product.unit || ''}</td>
+                                                <td>${product.remarks || ''}</td>
+                                                <td>
+                                                    <span class="badge ${statusClass}">
+                                                        ${statusText}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-icon edit-product" data-id="${product.id}" title="Edit">
+                                                            <i data-lucide="edit"></i>
+                                                        </button>
+                                                        <button class="btn-icon delete-product" data-id="${product.id}" title="Delete">
+                                                            <i data-lucide="trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${products.length === 0 ? `
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                                                <i data-lucide="package" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                                <p>No products added yet</p>
+                                                <button class="btn btn-primary mt-3" id="add-first-product">
+                                                    <i data-lucide="plus"></i>
+                                                    Add First Product
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        loadStores() {
+            const stores = this.data.stores || [];
+            
+            return `
+                <div class="stores-page">
+                    <div class="page-header">
+                        <div class="header-left">
+                            <h2>Stores</h2>
+                            <p>Manage your store locations</p>
+                        </div>
+                        <div class="header-right">
+                            <button class="btn btn-primary" id="add-store">
+                                <i data-lucide="plus"></i>
+                                Add Store
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Store Code</th>
+                                        <th>Store Name</th>
+                                        <th>Address</th>
+                                        <th>Remarks</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${stores.map(store => {
+                                        const statusClass = store.status === 'active' ? 'badge-success' : 'badge-destructive';
+                                        const statusText = store.status === 'active' ? 'Active' : 'Inactive';
+                                        
+                                        return `
+                                            <tr data-id="${store.id}">
+                                                <td>${store.code || ''}</td>
+                                                <td>${store.name || ''}</td>
+                                                <td>${store.address || ''}</td>
+                                                <td>${store.remarks || ''}</td>
+                                                <td>
+                                                    <span class="badge ${statusClass}">
+                                                        ${statusText}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-icon edit-store" data-id="${store.id}" title="Edit">
+                                                            <i data-lucide="edit"></i>
+                                                        </button>
+                                                        <button class="btn-icon delete-store" data-id="${store.id}" title="Delete">
+                                                            <i data-lucide="trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${stores.length === 0 ? `
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                                                <i data-lucide="store" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                                <p>No stores added yet</p>
+                                                <button class="btn btn-primary mt-3" id="add-first-store">
+                                                    <i data-lucide="plus"></i>
+                                                    Add First Store
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        loadPurchasingCenters() {
+            const centers = this.data.purchasingCenters || [];
+            
+            return `
+                <div class="centers-page">
+                    <div class="page-header">
+                        <div class="header-left">
+                            <h2>Purchasing Centers</h2>
+                            <p>Manage your purchasing centers</p>
+                        </div>
+                        <div class="header-right">
+                            <button class="btn btn-primary" id="add-center">
+                                <i data-lucide="plus"></i>
+                                Add Center
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Center Code</th>
+                                        <th>PCenter Name</th>
+                                        <th>Address</th>
+                                        <th>Remarks</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${centers.map(center => {
+                                        const statusClass = center.status === 'active' ? 'badge-success' : 'badge-destructive';
+                                        const statusText = center.status === 'active' ? 'Active' : 'Inactive';
+                                        
+                                        return `
+                                            <tr data-id="${center.id}">
+                                                <td>${center.code || ''}</td>
+                                                <td>${center.name || ''}</td>
+                                                <td>${center.address || ''}</td>
+                                                <td>${center.remarks || ''}</td>
+                                                <td>
+                                                    <span class="badge ${statusClass}">
+                                                        ${statusText}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-icon edit-center" data-id="${center.id}" title="Edit">
+                                                            <i data-lucide="edit"></i>
+                                                        </button>
+                                                        <button class="btn-icon delete-center" data-id="${center.id}" title="Delete">
+                                                            <i data-lucide="trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${centers.length === 0 ? `
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                                                <i data-lucide="building-2" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                                <p>No purchasing centers added yet</p>
+                                                <button class="btn btn-primary mt-3" id="add-first-center">
+                                                    <i data-lucide="plus"></i>
+                                                    Add First Center
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        loadPurchasingOfficers() {
+            const officers = this.data.purchasingOfficers || [];
+            const centers = this.data.purchasingCenters || [];
+            
+            return `
+                <div class="officers-page">
+                    <div class="page-header">
+                        <div class="header-left">
+                            <h2>Purchasing Officers</h2>
+                            <p>Manage purchasing officers assigned to purchasing centers</p>
+                        </div>
+                        <div class="header-right">
+                            <button class="btn btn-primary" id="add-officer">
+                                <i data-lucide="plus"></i>
+                                Add Officer
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                        <th>Contact Number</th>
+                                        <th>PCenter Name</th>
+                                        <th>Address</th>
+                                        <th>Remarks</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${officers.map(officer => {
+                                        const center = centers.find(c => c.id === officer.purchasingCenterId);
+                                        const statusClass = officer.status === 'active' ? 'badge-success' : 'badge-destructive';
+                                        const statusText = officer.status === 'active' ? 'Active' : 'Inactive';
+                                        
+                                        return `
+                                            <tr data-id="${officer.id}">
+                                                <td>${officer.code || ''}</td>
+                                                <td>${officer.name || ''}</td>
+                                                <td>${officer.contactNumber || '-'}</td>
+                                                <td>${center?.name || 'Unknown'}</td>
+                                                <td>${officer.address || ''}</td>
+                                                <td>${officer.remarks || ''}</td>
+                                                <td>
+                                                    <span class="badge ${statusClass}">
+                                                        ${statusText}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-icon edit-officer" data-id="${officer.id}" title="Edit">
+                                                            <i data-lucide="edit"></i>
+                                                        </button>
+                                                        <button class="btn-icon delete-officer" data-id="${officer.id}" title="Delete">
+                                                            <i data-lucide="trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${officers.length === 0 ? `
+                                        <tr>
+                                            <td colspan="8" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                                                <i data-lucide="users" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                                <p>No purchasing officers added yet</p>
+                                                <button class="btn btn-primary mt-3" id="add-first-officer">
+                                                    <i data-lucide="plus"></i>
+                                                    Add First Officer
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        loadProductReturns() {
+            const allReturns = this.data.productReturns || [];
+            const filteredReturns = this.getFilteredReturns();
+            const products = this.data.products || [];
+            const stores = this.data.stores || [];
+            const centers = this.data.purchasingCenters || [];
+            const officers = this.data.purchasingOfficers || [];
+            
+            const totalRecords = filteredReturns.length;
+            const totalPages = Math.ceil(totalRecords / this.pagination.recordsPerPage);
+            const startIndex = (this.pagination.currentPage - 1) * this.pagination.recordsPerPage;
+            const endIndex = startIndex + this.pagination.recordsPerPage;
+            const paginatedReturns = filteredReturns.slice(startIndex, endIndex);
+            
+            return `
+                <div class="returns-page">
+                    <div class="page-header">
+                        <div class="header-left">
+                            <h2>Product Returns</h2>
+                            <p>Track and manage product returns with refund calculations</p>
+                        </div>
+                        <div class="header-right">
+                            <button class="btn btn-primary" id="add-return">
+                                <i data-lucide="plus"></i>
+                                Record Return
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="filters-container">
+                            <div class="filter-group">
+                                <label for="filter-date">Date Range</label>
+                                <div class="date-range">
+                                    <input type="date" id="filter-date-from" class="date-input" value="${this.currentFilters.dateFrom}">
+                                    <span>to</span>
+                                    <input type="date" id="filter-date-to" class="date-input" value="${this.currentFilters.dateTo}">
+                                </div>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-status">Status</label>
+                                <select id="filter-status" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="pending" ${this.currentFilters.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="approved" ${this.currentFilters.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                    <option value="rejected" ${this.currentFilters.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                                    <option value="completed" ${this.currentFilters.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-store">Store</label>
+                                <select id="filter-store" class="filter-select">
+                                    <option value="">All Stores</option>
+                                    ${stores.map(store => `
+                                        <option value="${store.id}" ${this.currentFilters.storeId === store.id ? 'selected' : ''}>${store.name}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-center">Purchasing Center</label>
+                                <select id="filter-center" class="filter-select">
+                                    <option value="">All Centers</option>
+                                    ${centers.map(center => `
+                                        <option value="${center.id}" ${this.currentFilters.centerId === center.id ? 'selected' : ''}>${center.name}</option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            
+                            <div class="filter-group">
+                                <label for="filter-shop">Shop (3PS)</label>
+                                <input type="text" id="filter-shop" class="filter-select" value="${this.currentFilters.shop3ps || ''}" placeholder="Search shop...">
+                            </div>
+                            
+                            <div class="filter-actions">
+                                <button class="btn btn-outline" id="apply-filters">
+                                    <i data-lucide="filter"></i>
+                                    Apply
+                                </button>
+                                <button class="btn btn-outline" id="clear-filters">
+                                    <i data-lucide="x"></i>
+                                    Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="export-buttons">
+                            <button class="btn btn-outline" id="export-excel">
+                                <i data-lucide="file-spreadsheet"></i>
+                                Export to Excel
+                            </button>
+                            <button class="btn btn-outline" id="export-pdf">
+                                <i data-lucide="file-text"></i>
+                                Export to PDF
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card mb-4">
+                        <div class="table-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <h3>Product Returns</h3>
+                            <div class="pagination-controls">
+                                <div class="records-per-page">
+                                    <label for="records-per-page">Show:</label>
+                                    <select id="records-per-page" class="filter-select" style="width: auto; min-width: 70px;">
+                                        ${this.pagination.availablePageSizes.map(size => `
+                                            <option value="${size}" ${this.pagination.recordsPerPage === size ? 'selected' : ''}>
+                                                ${size}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                    <span style="font-size: 14px;">per page</span>
+                                </div>
+                                
+                                <div class="pagination-info">
+                                    Showing ${totalRecords > 0 ? startIndex + 1 : 0} to ${Math.min(endIndex, totalRecords)} of ${totalRecords} entries
+                                </div>
+                                
+                                <div class="pagination-buttons">
+                                    <button class="btn-icon ${this.pagination.currentPage === 1 ? 'disabled' : ''}" id="first-page" 
+                                            ${this.pagination.currentPage === 1 ? 'disabled' : ''} title="First Page">
+                                        <i data-lucide="chevrons-left"></i>
+                                    </button>
+                                    <button class="btn-icon ${this.pagination.currentPage === 1 ? 'disabled' : ''}" id="prev-page" 
+                                            ${this.pagination.currentPage === 1 ? 'disabled' : ''} title="Previous Page">
+                                        <i data-lucide="chevron-left"></i>
+                                    </button>
+                                    <span style="padding: 8px 12px; font-size: 14px;">
+                                        Page ${this.pagination.currentPage} of ${totalPages || 1}
+                                    </span>
+                                    <button class="btn-icon ${this.pagination.currentPage >= totalPages ? 'disabled' : ''}" id="next-page" 
+                                            ${this.pagination.currentPage >= totalPages ? 'disabled' : ''} title="Next Page">
+                                        <i data-lucide="chevron-right"></i>
+                                    </button>
+                                    <button class="btn-icon ${this.pagination.currentPage >= totalPages ? 'disabled' : ''}" id="last-page" 
+                                            ${this.pagination.currentPage >= totalPages ? 'disabled' : ''} title="Last Page">
+                                        <i data-lucide="chevrons-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Doc No.</th>
+                                        <th>Return Date</th>
+                                        <th>Item Code</th>
+                                        <th>Description</th>
+                                        <th>Unit</th>
+                                        <th>Return Qty</th>
+                                        <th>Non-Ref Qty</th>
+                                        <th>Unit Price</th>
+                                        <th>Total Value</th>
+                                        <th>Refundable</th>
+                                        <th>Non-Ref Value</th>
+                                        <th>Shop (3PS)</th>
+                                        <th>P. Center</th>
+                                        <th>P. Officer</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${paginatedReturns.map(returnItem => {
+                                        const product = products.find(p => p.id === returnItem.productId);
+                                        const store = stores.find(s => s.id === returnItem.storeId);
+                                        const center = centers.find(c => c.id === returnItem.purchasingCenterId);
+                                        const officer = officers.find(o => o.id === returnItem.purchasingOfficerId);
+                                        const statusClass = returnItem.status ? `badge-${returnItem.status}` : 'badge-pending';
+                                        const statusText = returnItem.status ? returnItem.status.charAt(0).toUpperCase() + returnItem.status.slice(1) : 'Pending';
+                                        
+                                        return `
+                                            <tr data-id="${returnItem.id}">
+                                                <td><span class="mono">${returnItem.returnId || ''}</span></td>
+                                                <td>${returnItem.returnDate ? new Date(returnItem.returnDate).toLocaleDateString() : ''}</td>
+                                                <td><span class="mono">${product?.code || 'Unknown'}</span></td>
+                                                <td>${product?.description || 'Unknown'}</td>
+                                                <td>${product?.unit || '-'}</td>
+                                                <td>${returnItem.quantity || 0}</td>
+                                                <td>${returnItem.nonUsableQuantity || 0}</td>
+                                                <td>$${(returnItem.pricePerUnit || 0).toFixed(2)}</td>
+                                                <td><strong>$${(returnItem.totalReturnValue || 0).toFixed(2)}</strong></td>
+                                                <td><span class="text-success">$${(returnItem.refundableValue || 0).toFixed(2)}</span></td>
+                                                <td><span class="text-destructive">$${(returnItem.nonUsableValue || 0).toFixed(2)}</span></td>
+                                                <td>${returnItem.shop3ps || '-'}</td>
+                                                <td>${center?.name || 'Unknown'}</td>
+                                                <td>${officer?.name || 'Unknown'}</td>
+                                                <td><span class="badge ${statusClass}">${statusText}</span></td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <button class="btn-icon edit-return" data-id="${returnItem.id}" title="Edit">
+                                                            <i data-lucide="edit"></i>
+                                                        </button>
+                                                        <button class="btn-icon delete-return" data-id="${returnItem.id}" title="Delete">
+                                                            <i data-lucide="trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                    ${paginatedReturns.length === 0 ? `
+                                        <tr>
+                                            <td colspan="16" style="text-align: center; padding: 40px; color: hsl(var(--muted-foreground));">
+                                                <i data-lucide="rotate-ccw" style="width: 48px; height: 48px; margin-bottom: 16px;"></i>
+                                                <p>${allReturns.length === 0 ? 'No returns recorded yet' : 'No returns found with current filters'}</p>
+                                                ${allReturns.length === 0 ? `
+                                                    <button class="btn btn-primary mt-3" id="add-first-return">
+                                                        <i data-lucide="plus"></i>
+                                                        Record First Return
+                                                    </button>
+                                                ` : ''}
+                                            </td>
+                                        </tr>
+                                    ` : ''}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    ${totalPages > 1 ? `
+                        <div class="card mt-4">
+                            <div class="table-header" style="display: flex; justify-content: center;">
+                                <div class="pagination-buttons" style="display: flex; gap: 8px;">
+                                    <button class="btn btn-outline ${this.pagination.currentPage === 1 ? 'disabled' : ''}" id="first-page-bottom" 
+                                            ${this.pagination.currentPage === 1 ? 'disabled' : ''}>
+                                        <i data-lucide="chevrons-left"></i> First
+                                    </button>
+                                    <button class="btn btn-outline ${this.pagination.currentPage === 1 ? 'disabled' : ''}" id="prev-page-bottom" 
+                                            ${this.pagination.currentPage === 1 ? 'disabled' : ''}>
+                                        <i data-lucide="chevron-left"></i> Previous
+                                    </button>
+                                    <div style="display: flex; align-items: center; padding: 0 16px;">
+                                        <span style="font-size: 14px;">
+                                            Page ${this.pagination.currentPage} of ${totalPages}
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-outline ${this.pagination.currentPage >= totalPages ? 'disabled' : ''}" id="next-page-bottom" 
+                                            ${this.pagination.currentPage >= totalPages ? 'disabled' : ''}>
+                                        Next <i data-lucide="chevron-right"></i>
+                                    </button>
+                                    <button class="btn btn-outline ${this.pagination.currentPage >= totalPages ? 'disabled' : ''}" id="last-page-bottom" 
+                                            ${this.pagination.currentPage >= totalPages ? 'disabled' : ''}>
+                                        Last <i data-lucide="chevrons-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="mt-4">
+                        <div class="card">
+                            <div class="table-header">
+                                <h3>Summary Statistics</h3>
+                            </div>
+                            <div class="summary-stats">
+                                <div class="stat-card-summary">
+                                    <div class="stat-label">Total Returns Count</div>
+                                    <div class="stat-value-large">${filteredReturns.length}</div>
+                                </div>
+                                <div class="stat-card-summary">
+                                    <div class="stat-label">Total Return Value</div>
+                                    <div class="stat-value-large">$${filteredReturns.reduce((sum, r) => sum + (r.totalReturnValue || 0), 0).toFixed(2)}</div>
+                                </div>
+                                <div class="stat-card-summary">
+                                    <div class="stat-label">Total Refundable Value</div>
+                                    <div class="stat-value-large text-success">$${filteredReturns.reduce((sum, r) => sum + (r.refundableValue || 0), 0).toFixed(2)}</div>
+                                </div>
+                                <div class="stat-card-summary">
+                                    <div class="stat-label">Total Non-Refundable Value</div>
+                                    <div class="stat-value-large text-destructive">$${filteredReturns.reduce((sum, r) => sum + (r.nonUsableValue || 0), 0).toFixed(2)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        showProductForm(product = null) {
+            const formHtml = `
+                <form id="product-form" class="form-grid">
+                    <div class="form-field">
+                        <label for="product-code">Product Code *</label>
+                        <input type="text" id="product-code" name="code" value="${product?.code || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="product-description">Description *</label>
+                        <input type="text" id="product-description" name="description" value="${product?.description || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="product-unit">Unit *</label>
+                        <input type="text" id="product-unit" name="unit" value="${product?.unit || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="product-remarks">Remarks</label>
+                        <textarea id="product-remarks" name="remarks">${product?.remarks || ''}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="product-status">Status</label>
+                        <select id="product-status" name="status">
+                            <option value="active" ${product?.status === 'active' ? 'selected' : ''}>Active</option>
+                            <option value="inactive" ${product?.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-product-form">Cancel</button>
+                        <button type="submit" class="btn btn-primary">${product ? 'Update' : 'Add'} Product</button>
+                    </div>
+                </form>
+            `;
+            
+            const modal = this.showModal(
+                product ? 'Edit Product' : 'Add New Product',
+                formHtml
+            );
+            
+            this.setupProductFormSubmit(modal, product);
+        }
+        
+        showStoreForm(store = null) {
+            const formHtml = `
+                <form id="store-form" class="form-grid">
+                    <div class="form-field">
+                        <label for="store-code">Store Code *</label>
+                        <input type="text" id="store-code" name="code" value="${store?.code || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="store-name">Store Name *</label>
+                        <input type="text" id="store-name" name="name" value="${store?.name || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="store-address">Address *</label>
+                        <textarea id="store-address" name="address" required>${store?.address || ''}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="store-remarks">Remarks</label>
+                        <textarea id="store-remarks" name="remarks">${store?.remarks || ''}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="store-status">Status</label>
+                        <select id="store-status" name="status">
+                            <option value="active" ${store?.status === 'active' ? 'selected' : ''}>Active</option>
+                            <option value="inactive" ${store?.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-store-form">Cancel</button>
+                        <button type="submit" class="btn btn-primary">${store ? 'Update' : 'Add'} Store</button>
+                    </div>
+                </form>
+            `;
+            
+            const modal = this.showModal(
+                store ? 'Edit Store' : 'Add New Store',
+                formHtml
+            );
+            
+            this.setupStoreFormSubmit(modal, store);
+        }
+        
+        showCenterForm(center = null) {
+            const formHtml = `
+                <form id="center-form" class="form-grid">
+                    <div class="form-field">
+                        <label for="center-code">Center Code *</label>
+                        <input type="text" id="center-code" name="code" value="${center?.code || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="center-name">Center Name *</label>
+                        <input type="text" id="center-name" name="name" value="${center?.name || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="center-address">Address *</label>
+                        <textarea id="center-address" name="address" required>${center?.address || ''}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="center-remarks">Remarks</label>
+                        <textarea id="center-remarks" name="remarks">${center?.remarks || ''}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="center-status">Status</label>
+                        <select id="center-status" name="status">
+                            <option value="active" ${center?.status === 'active' ? 'selected' : ''}>Active</option>
+                            <option value="inactive" ${center?.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-center-form">Cancel</button>
+                        <button type="submit" class="btn btn-primary">${center ? 'Update' : 'Add'} Center</button>
+                    </div>
+                </form>
+            `;
+            
+            const modal = this.showModal(
+                center ? 'Edit Purchasing Center' : 'Add New Purchasing Center',
+                formHtml
+            );
+            
+            this.setupCenterFormSubmit(modal, center);
+        }
+        
+        showOfficerForm(officer = null) {
+            const nextCode = officer ? officer.code : this.dataManager.getNextOfficerCode();
+            const formHtml = `
+                <form id="officer-form" class="form-grid">
+                    <div class="form-field">
+                        <label for="officer-code">Officer Code *</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="officer-code" name="code" value="${officer?.code || nextCode}" required 
+                                   placeholder="e.g., PO-001" style="flex: 1;">
+                            <button type="button" id="generate-code" class="btn btn-outline" style="white-space: nowrap; padding: 8px 12px;">
+                                <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i>
+                                Generate
+                            </button>
+                        </div>
+                        <small class="text-muted">${officer ? 'Edit officer code' : 'Suggested code shown, you can edit or generate new one'}</small>
+                    </div>
+                    <div class="form-field">
+                        <label for="officer-name">Name *</label>
+                        <input type="text" id="officer-name" name="name" value="${officer?.name || ''}" required>
+                    </div>
+                    <div class="form-field">
+                        <label for="officer-contact">Contact Number</label>
+                        <input type="tel" id="officer-contact" name="contactNumber" value="${officer?.contactNumber || ''}" placeholder="e.g., +94 XX XXX XXXX">
+                    </div>
+                    <div class="form-field">
+                        <label for="officer-center">Purchasing Center *</label>
+                        <select id="officer-center" name="purchasingCenterId" required>
+                            <option value="">Select Center</option>
+                            ${this.data.purchasingCenters
+                                .filter(c => c.status === 'active')
+                                .map(c => `<option value="${c.id}" ${officer?.purchasingCenterId === c.id ? 'selected' : ''}>${c.name} (${c.code})</option>`)
+                                .join('')}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label for="officer-address">Address</label>
+                        <textarea id="officer-address" name="address">${officer?.address || ''}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="officer-remarks">Remarks</label>
+                        <textarea id="officer-remarks" name="remarks">${officer?.remarks || ''}</textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="officer-status">Status</label>
+                        <select id="officer-status" name="status">
+                            <option value="active" ${officer?.status === 'active' ? 'selected' : ''}>Active</option>
+                            <option value="inactive" ${officer?.status === 'inactive' ? 'selected' : ''}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-officer-form">Cancel</button>
+                        <button type="submit" class="btn btn-primary">${officer ? 'Update' : 'Add'} Officer</button>
+                    </div>
+                </form>
+            `;
+            
+            const modal = this.showModal(
+                officer ? `Edit Officer - ${officer.code}` : 'Add New Officer',
+                formHtml
+            );
+            
+            this.setupOfficerFormSubmit(modal, officer);
+        }
+        
+        showReturnForm(returnItem = null) {
+            const nextId = returnItem ? returnItem.returnId : this.dataManager.getNextReturnId();
+            const products = this.data.products.filter(p => p.status === 'active');
+            const stores = this.data.stores.filter(s => s.status === 'active');
+            const centers = this.data.purchasingCenters.filter(c => c.status === 'active');
+            
+            const formHtml = `
+                <form id="return-form" class="form-grid" style="max-width: 1000px;">
+                    <div class="form-section">
+                        <h4>Basic Information</h4>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label>Return Document ID</label>
+                                <input type="text" value="${nextId}" disabled style="background: #f3f4f6;">
+                            </div>
+                            <div class="form-field">
+                                <label for="return-date">Return Date *</label>
+                                <input type="date" id="return-date" name="returnDate" value="${returnItem?.returnDate ? new Date(returnItem.returnDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="purchase-date">Purchase Date *</label>
+                                <input type="date" id="purchase-date" name="purchaseDate" value="${returnItem?.purchaseDate ? new Date(returnItem.purchaseDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Product Selection</h4>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="return-product">Product *</label>
+                                <select id="return-product" name="productId" required>
+                                    <option value="">Select Product</option>
+                                    ${products.map(p => `<option value="${p.id}" ${returnItem?.productId === p.id ? 'selected' : ''}>${p.description} (${p.code})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="return-store">Store *</label>
+                                <select id="return-store" name="storeId" required>
+                                    <option value="">Select Store</option>
+                                    ${stores.map(s => `<option value="${s.id}" ${returnItem?.storeId === s.id ? 'selected' : ''}>${s.name} (${s.code})</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Purchasing Information</h4>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="return-center">Purchasing Center *</label>
+                                <select id="return-center" name="purchasingCenterId" required>
+                                    <option value="">Select Center</option>
+                                    ${centers.map(c => `<option value="${c.id}" ${returnItem?.purchasingCenterId === c.id ? 'selected' : ''}>${c.name} (${c.code})</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="return-officer">Purchasing Officer *</label>
+                                <select id="return-officer" name="purchasingOfficerId" required>
+                                    <option value="">Select Officer</option>
+                                    ${this.data.purchasingOfficers
+                                        .filter(o => o.status === 'active')
+                                        .map(o => `<option value="${o.id}" ${returnItem?.purchasingOfficerId === o.id ? 'selected' : ''}>${o.name} (${o.code})</option>`)
+                                        .join('')}
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label for="return-shop">Shop (3PS)</label>
+                                <input type="text" id="return-shop" name="shop3ps" value="${returnItem?.shop3ps || ''}" placeholder="Enter shop name">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Return Details</h4>
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label for="return-quantity">Return Quantity *</label>
+                                <input type="number" id="return-quantity" name="quantity" min="0" step="any" value="${returnItem?.quantity || 1}" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="return-price">Price Per Unit ($) *</label>
+                                <input type="number" id="return-price" name="pricePerUnit" min="0" step="any" value="${returnItem?.pricePerUnit || 0}" required>
+                            </div>
+                            <div class="form-field">
+                                <label for="return-nonusable">Non-Usable Quantity</label>
+                                <input type="number" id="return-nonusable" name="nonUsableQuantity" min="0" step="any" value="${returnItem?.nonUsableQuantity || 0}">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-section">
+                        <h4>Additional Information</h4>
+                        <div class="form-grid">
+                            <div class="form-field full-width">
+                                <label for="return-reason">Reason for Return *</label>
+                                <textarea id="return-reason" name="reason" rows="3" required>${returnItem?.reasonForReturn || ''}</textarea>
+                            </div>
+                            <div class="form-field">
+                                <label for="return-refundable" style="display: flex; align-items: center; gap: 8px;">
+                                    <input type="checkbox" id="return-refundable" name="isRefundable" ${returnItem?.isRefundable !== false ? 'checked' : ''}>
+                                    Is Refundable
+                                </label>
+                            </div>
+                            ${returnItem ? `
+                                <div class="form-field">
+                                    <label for="return-status">Status</label>
+                                    <select id="return-status" name="status">
+                                        <option value="pending" ${returnItem?.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="approved" ${returnItem?.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                        <option value="rejected" ${returnItem?.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                                        <option value="completed" ${returnItem?.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                    </select>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-return-form">Cancel</button>
+                        <button type="submit" class="btn btn-primary">${returnItem ? 'Update' : 'Record'} Return</button>
+                    </div>
+                </form>
+            `;
+            
+            const modal = this.showModal(
+                returnItem ? `Edit Return - ${returnItem.returnId}` : 'Record New Return',
+                formHtml
+            );
+            
+            this.setupReturnFormSubmit(modal, returnItem, nextId);
+        }
+
+        setupProductFormSubmit(modal, product) {
+            const form = modal.querySelector('#product-form');
+            const cancelBtn = modal.querySelector('#cancel-product-form');
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                try {
+                    if (product) {
+                        await this.dataManager.updateProduct(product.id, data);
+                    } else {
+                        await this.dataManager.addProduct(data);
+                    }
+                    this.closeModal(modal);
+                } catch (error) {
+                    console.error('Error saving product:', error);
+                }
+            });
+            
+            cancelBtn.addEventListener('click', () => this.closeModal(modal));
+        }
+
+        setupStoreFormSubmit(modal, store) {
+            const form = modal.querySelector('#store-form');
+            const cancelBtn = modal.querySelector('#cancel-store-form');
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                try {
+                    if (store) {
+                        await this.dataManager.updateStore(store.id, data);
+                    } else {
+                        await this.dataManager.addStore(data);
+                    }
+                    this.closeModal(modal);
+                } catch (error) {
+                    console.error('Error saving store:', error);
+                }
+            });
+            
+            cancelBtn.addEventListener('click', () => this.closeModal(modal));
+        }
+
+        setupCenterFormSubmit(modal, center) {
+            const form = modal.querySelector('#center-form');
+            const cancelBtn = modal.querySelector('#cancel-center-form');
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                try {
+                    if (center) {
+                        await this.dataManager.updatePurchasingCenter(center.id, data);
+                    } else {
+                        await this.dataManager.addPurchasingCenter(data);
+                    }
+                    this.closeModal(modal);
+                } catch (error) {
+                    console.error('Error saving center:', error);
+                }
+            });
+            
+            cancelBtn.addEventListener('click', () => this.closeModal(modal));
+        }
+
+        setupOfficerFormSubmit(modal, officer) {
+            const form = modal.querySelector('#officer-form');
+            const cancelBtn = modal.querySelector('#cancel-officer-form');
+            const generateBtn = modal.querySelector('#generate-code');
+            const codeInput = modal.querySelector('#officer-code');
+            
+            generateBtn.addEventListener('click', () => {
+                const nextCode = this.dataManager.getNextOfficerCode();
+                codeInput.value = nextCode;
+                this.showToast('New code generated', 'success');
+            });
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                if (!data.code || data.code.trim() === '') {
+                    this.showToast('Officer code is required', 'error');
+                    return;
+                }
+                
+                if (!officer || officer.code !== data.code) {
+                    const existingOfficer = this.data.purchasingOfficers.find(o => o.code === data.code);
+                    if (existingOfficer) {
+                        this.showToast(`Officer code "${data.code}" already exists`, 'error');
+                        return;
+                    }
+                }
+                
+                try {
+                    if (officer) {
+                        await this.dataManager.updatePurchasingOfficer(officer.id, data);
+                    } else {
+                        await this.dataManager.addPurchasingOfficer(data);
+                    }
+                    this.closeModal(modal);
+                } catch (error) {
+                    console.error('Error saving officer:', error);
+                    this.showToast(`Error saving officer: ${error.message}`, 'error');
+                }
+            });
+            
+            cancelBtn.addEventListener('click', () => this.closeModal(modal));
+            setTimeout(() => lucide.createIcons(), 100);
+        }
+
+        setupReturnFormSubmit(modal, returnItem, nextId) {
+            const form = modal.querySelector('#return-form');
+            const cancelBtn = modal.querySelector('#cancel-return-form');
+            
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                
+                const quantity = parseFloat(data.quantity) || 0;
+                const pricePerUnit = parseFloat(data.pricePerUnit) || 0;
+                const nonUsableQuantity = parseFloat(data.nonUsableQuantity) || 0;
+                
+                const totalReturnValue = quantity * pricePerUnit;
+                const nonUsableValue = nonUsableQuantity * pricePerUnit;
+                const refundableValue = Math.max(0, totalReturnValue - nonUsableValue);
+                const isRefundable = data.isRefundable === 'on';
+                
+                const returnData = {
+                    returnId: nextId,
+                    returnDate: data.returnDate,
+                    purchaseDate: data.purchaseDate,
+                    productId: data.productId,
+                    storeId: data.storeId,
+                    purchasingCenterId: data.purchasingCenterId,
+                    purchasingOfficerId: data.purchasingOfficerId,
+                    shop3ps: data.shop3ps || '',
+                    quantity: quantity,
+                    pricePerUnit: pricePerUnit,
+                    nonUsableQuantity: nonUsableQuantity,
+                    reasonForReturn: data.reason,
+                    isRefundable: isRefundable,
+                    totalReturnValue: totalReturnValue,
+                    nonUsableValue: nonUsableValue,
+                    refundableValue: refundableValue,
+                    status: data.status || returnItem?.status || 'pending'
+                };
+                
+                try {
+                    if (returnItem) {
+                        await this.dataManager.updateProductReturn(returnItem.id, returnData);
+                    } else {
+                        await this.dataManager.addProductReturn(returnData);
+                    }
+                    this.closeModal(modal);
+                } catch (error) {
+                    console.error('Error saving return:', error);
+                    this.showToast(`Error saving return: ${error.message}`, 'error');
+                }
+            });
+            
+            cancelBtn.addEventListener('click', () => this.closeModal(modal));
+        }
+
+        showModal(title, content) {
+            const modalContainer = document.getElementById('modal-container');
+            const modalOverlay = document.createElement('div');
+            modalOverlay.className = 'modal-overlay';
+            modalOverlay.innerHTML = `
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>${title}</h3>
+                        <button class="modal-close btn-icon">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                </div>
+            `;
+            
+            modalContainer.appendChild(modalOverlay);
+            lucide.createIcons();
+            
+            const closeBtn = modalOverlay.querySelector('.modal-close');
+            closeBtn.addEventListener('click', () => this.closeModal(modalOverlay));
+            
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) {
+                    this.closeModal(modalOverlay);
+                }
+            });
+            
+            return modalOverlay;
+        }
+
+        closeModal(modal) {
+            modal.remove();
+        }
+
+        showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let iconName = 'check-circle';
+            if (type === 'error') iconName = 'alert-circle';
+            if (type === 'warning') iconName = 'alert-triangle';
+            
+            toast.innerHTML = `
+                <i data-lucide="${iconName}" style="width: 20px; height: 20px;"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        window.app = new ReturnTrackingApp();
+    });
+    </script>
+</body>
+</html>

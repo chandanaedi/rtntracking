@@ -70,10 +70,7 @@
         /* Loading screen */
         .loading-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: hsl(var(--background));
             display: flex;
             flex-direction: column;
@@ -102,7 +99,7 @@
             min-height: 100vh;
         }
 
-        /* Mobile Header Bar (Hidden on Desktop) */
+        /* Mobile Header Bar */
         .mobile-header {
             display: none;
             background: var(--gradient-primary);
@@ -188,6 +185,7 @@
             border-radius: calc(var(--radius) - 4px);
             transition: all 0.2s ease;
             font-weight: 500;
+            cursor: pointer;
         }
 
         .nav-item:hover, .nav-item.active {
@@ -493,7 +491,7 @@
         }
 
         .chart-container {
-            height: 240px;
+            height: 260px;
             position: relative;
         }
 
@@ -530,7 +528,7 @@
             border-collapse: collapse;
             font-size: 12px;
             text-align: left;
-            min-width: 1050px; /* Expanded min-width to accommodate new columns nicely */
+            min-width: 1050px;
         }
 
         .data-table th {
@@ -731,9 +729,13 @@
                     </button>
                 </div>
                 <div class="sidebar-nav">
-                    <a href="#" class="nav-item active">
+                    <a id="nav-dashboard" class="nav-item active">
                         <i data-lucide="layout-dashboard"></i>
                         <span>Dashboard</span>
+                    </a>
+                    <a id="nav-detailed-analysis" class="nav-item">
+                        <i data-lucide="bar-chart-2"></i>
+                        <span>Detailed Analysis</span>
                     </a>
                 </div>
                 <div class="sidebar-footer">
@@ -746,8 +748,8 @@
             <main class="main-content">
                 <header class="main-header">
                     <div class="header-left">
-                        <h1>Dashboard Overview</h1>
-                        <p>Track, manage, and analyze product return requests efficiently.</p>
+                        <h1 id="page-title">Dashboard Overview</h1>
+                        <p id="page-subtitle">Track, manage, and analyze product return requests efficiently.</p>
                     </div>
                     <div class="header-right">
                         <button id="refresh-data" class="btn btn-outline">
@@ -757,18 +759,14 @@
                     </div>
                 </header>
 
-                <!-- Filter Section -->
+                <!-- Common Top Search Filter Section -->
                 <div class="filters-section">
                     <div class="card" style="margin-bottom: 0;">
                         <div class="filters-header-bar" id="filter-toggle-bar">
-                            <h3><i data-lucide="filter" style="width: 16px; height: 16px;"></i> Filter Data</h3>
+                            <h3><i data-lucide="filter" style="width: 16px; height: 16px;"></i> Search & Date Filters</h3>
                             <i data-lucide="chevron-down" id="filter-chevron"></i>
                         </div>
                         <div class="filters-container" id="filters-body">
-                            <div class="filter-group">
-                                <label for="filter-return-no">Return Number (Doc ID)</label>
-                                <input type="text" id="filter-return-no" class="shop-text-input" placeholder="Type return number...">
-                            </div>
                             <div class="filter-group">
                                 <label for="filter-date-from">Date From</label>
                                 <input type="date" id="filter-date-from" class="date-input">
@@ -776,26 +774,6 @@
                             <div class="filter-group">
                                 <label for="filter-date-to">Date To</label>
                                 <input type="date" id="filter-date-to" class="date-input">
-                            </div>
-                            <div class="filter-group">
-                                <label for="filter-status">Status</label>
-                                <select id="filter-status" class="filter-select">
-                                    <option value="">All Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                    <option value="completed">Completed</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="filter-store">Store</label>
-                                <select id="filter-store" class="filter-select">
-                                    <option value="">All Stores</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label for="filter-shop3ps-text">Shop (3ps)</label>
-                                <input type="text" id="filter-shop3ps-text" class="shop-text-input" placeholder="Search shop...">
                             </div>
                             <div class="filter-group">
                                 <label for="filter-center">Purchasing Center</label>
@@ -808,6 +786,36 @@
                                 <select id="filter-officer" class="filter-select">
                                     <option value="">All Officers</option>
                                 </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-store">Stores</label>
+                                <select id="filter-store" class="filter-select">
+                                    <option value="">All Stores</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="filter-product">Product</label>
+                                <select id="filter-product" class="filter-select">
+                                    <option value="">All Products</option>
+                                </select>
+                            </div>
+                            <div class="filter-group" id="return-no-group">
+                                <label for="filter-return-no">Return Number (Doc ID)</label>
+                                <input type="text" id="filter-return-no" class="shop-text-input" placeholder="Type return number...">
+                            </div>
+                            <div class="filter-group" id="status-group">
+                                <label for="filter-status">Status</label>
+                                <select id="filter-status" class="filter-select">
+                                    <option value="">All Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="filter-group" id="shop-group">
+                                <label for="filter-shop3ps-text">Shop (3ps)</label>
+                                <input type="text" id="filter-shop3ps-text" class="shop-text-input" placeholder="Search shop...">
                             </div>
                             <div class="filter-actions">
                                 <button class="btn btn-primary" id="apply-filters" style="width: 100%;">Apply</button>
@@ -858,7 +866,7 @@
                     <div class="card kpi-card">
                         <div class="kpi-header">
                             <div class="kpi-content">
-                                <h3>Total Returns</h3>
+                                <h3>Total Return Count</h3>
                                 <div class="kpi-value" id="total-returns">0</div>
                             </div>
                             <div class="kpi-icon return-count">
@@ -868,92 +876,144 @@
                     </div>
                 </div>
 
-                <!-- Charts Section (Collapsible & Collapsed by Default) -->
-                <div class="charts-section">
-                    <div class="card" style="margin-bottom: 0;">
-                        <div class="charts-header-bar" id="charts-toggle-bar">
-                            <h3><i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i> Analytics Charts (Status & Monthly Trend)</h3>
-                            <i data-lucide="chevron-down" id="charts-chevron" style="transform: rotate(-90deg);"></i>
-                        </div>
-                        <div class="charts-grid" id="charts-body" style="display: none;">
-                            <div class="chart-card">
-                                <div class="chart-header">
-                                    <h3>Returns by Status</h3>
-                                    <select id="status-chart-period" class="chart-period-select">
-                                        <option value="month">This Month</option>
-                                        <option value="quarter">Quarter</option>
-                                        <option value="year">Year</option>
-                                    </select>
+                <!-- DASHBOARD VIEW SPECIFIC CONTENT -->
+                <div id="dashboard-view">
+                    <!-- Standard Overview Charts -->
+                    <div class="charts-section">
+                        <div class="card" style="margin-bottom: 0;">
+                            <div class="charts-header-bar" id="charts-toggle-bar">
+                                <h3><i data-lucide="bar-chart-3" style="width: 16px; height: 16px;"></i> Analytics Charts (Status & Monthly Trend)</h3>
+                                <i data-lucide="chevron-down" id="charts-chevron"></i>
+                            </div>
+                            <div class="charts-grid" id="charts-body">
+                                <div class="chart-card">
+                                    <div class="chart-header">
+                                        <h3>Returns by Status</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas id="status-chart"></canvas>
+                                    </div>
                                 </div>
-                                <div class="chart-container">
-                                    <canvas id="status-chart"></canvas>
+
+                                <div class="chart-card">
+                                    <div class="chart-header">
+                                        <h3>Monthly Value Trend</h3>
+                                    </div>
+                                    <div class="chart-container">
+                                        <canvas id="trend-chart"></canvas>
+                                    </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
 
-                            <div class="chart-card">
-                                <div class="chart-header">
-                                    <h3>Monthly Trend</h3>
-                                    <select id="trend-chart-period" class="chart-period-select">
-                                        <option value="6">Last 6M</option>
-                                        <option value="12">Last 12M</option>
-                                    </select>
+                    <!-- Data Table Section -->
+                    <div class="data-section">
+                        <div class="section-header">
+                            <h2>Return Records</h2>
+                            <div class="section-actions">
+                                <button class="btn btn-excel" id="export-excel">
+                                    <i data-lucide="file-spreadsheet"></i> Excel
+                                </button>
+                                <button class="btn btn-primary" id="export-pdf">
+                                    <i data-lucide="file-text"></i> PDF
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="table-wrapper">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Doc No.</th>
+                                            <th>Date</th>
+                                            <th>Item Code</th>
+                                            <th>Description</th>
+                                            <th>Qty</th>
+                                            <th>Price</th>
+                                            <th>Total Value</th>
+                                            <th>Refundable</th>
+                                            <th>Non-Refund</th>
+                                            <th>Shop</th>
+                                            <th>Purchasing Center</th>
+                                            <th>Purchasing Officer</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="returns-table-body">
+                                        <!-- Populated dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="table-footer">
+                                <div class="table-summary">
+                                    <span>Showing <span id="showing-count">0</span> of <span id="total-count">0</span> records</span>
                                 </div>
-                                <div class="chart-container">
-                                    <canvas id="trend-chart"></canvas>
+                                <div class="table-pagination">
+                                    <button class="btn-icon" id="prev-page" disabled><i data-lucide="chevron-left"></i></button>
+                                    <span style="font-size: 12px;">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
+                                    <button class="btn-icon" id="next-page" disabled><i data-lucide="chevron-right"></i></button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Data Table Section -->
-                <div class="data-section">
-                    <div class="section-header">
-                        <h2>Return Records</h2>
+                <!-- DETAILED ANALYSIS VIEW SPECIFIC CONTENT -->
+                <div id="detailed-analysis-view" class="hidden">
+                    <div class="section-header" style="margin-bottom: 16px;">
+                        <h2>Detailed Analytics Breakdown</h2>
                         <div class="section-actions">
-                            <button class="btn btn-excel" id="export-excel">
-                                <i data-lucide="file-spreadsheet"></i> Excel
+                            <button class="btn btn-excel" id="detailed-export-excel">
+                                <i data-lucide="file-spreadsheet"></i> Export Filtered Excel
                             </button>
-                            <button class="btn btn-primary" id="export-pdf">
-                                <i data-lucide="file-text"></i> PDF
+                            <button class="btn btn-primary" id="detailed-export-pdf">
+                                <i data-lucide="file-text"></i> Export PDF Report
                             </button>
                         </div>
                     </div>
-                    
-                    <div class="card">
-                        <div class="table-wrapper">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Doc No.</th>
-                                        <th>Date</th>
-                                        <th>Item Code</th>
-                                        <th>Description</th>
-                                        <th>Qty</th>
-                                        <th>Price</th>
-                                        <th>Total Value</th>
-                                        <th>Refundable</th>
-                                        <th>Non-Refund</th>
-                                        <th>Shop</th>
-                                        <th>Purchasing Center</th>
-                                        <th>Purchasing Officer</th>
-                                        <th>Status</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="returns-table-body">
-                                    <!-- Populated dynamically -->
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="table-footer">
-                            <div class="table-summary">
-                                <span>Showing <span id="showing-count">0</span> of <span id="total-count">0</span> records</span>
+
+                    <!-- 4 Targeted Analytics Charts -->
+                    <div class="charts-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); padding: 0; background: transparent;">
+                        <!-- Chart 1: Return Count By Stores -->
+                        <div class="chart-card card">
+                            <div class="chart-header">
+                                <h3>Return Count By Stores</h3>
                             </div>
-                            <div class="table-pagination">
-                                <button class="btn-icon" id="prev-page" disabled><i data-lucide="chevron-left"></i></button>
-                                <span style="font-size: 12px;">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
-                                <button class="btn-icon" id="next-page" disabled><i data-lucide="chevron-right"></i></button>
+                            <div class="chart-container">
+                                <canvas id="chart-store-returns"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Return Count By Purchasing Center -->
+                        <div class="chart-card card">
+                            <div class="chart-header">
+                                <h3>Return Count By Purchasing Center</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chart-center-returns"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 3: Return Count By Purchasing Officer -->
+                        <div class="chart-card card">
+                            <div class="chart-header">
+                                <h3>Return Count By Purchasing Officer</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chart-officer-returns"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 4: Return Count By Product -->
+                        <div class="chart-card card">
+                            <div class="chart-header">
+                                <h3>Return Count By Product</h3>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chart-product-returns"></canvas>
                             </div>
                         </div>
                     </div>
@@ -995,10 +1055,18 @@
         class ReturnsAnalyticsDashboard {
             constructor() {
                 this.data = { products: [], stores: [], purchasingCenters: [], purchasingOfficers: [], productReturns: [], shop3ps: [] };
-                this.currentFilters = { returnNo: '', dateFrom: '', dateTo: '', status: '', storeId: '', shop3psText: '', centerId: '', officerId: '' };
+                this.currentFilters = { returnNo: '', dateFrom: '', dateTo: '', status: '', storeId: '', shop3psText: '', centerId: '', officerId: '', productId: '' };
                 this.currentPage = 1;
                 this.itemsPerPage = 10;
-                this.charts = { statusChart: null, trendChart: null };
+                this.activeTab = 'dashboard'; // 'dashboard' or 'detailed'
+                this.charts = { 
+                    statusChart: null, 
+                    trendChart: null,
+                    storeChart: null,
+                    centerChart: null,
+                    officerChart: null,
+                    productChart: null
+                };
                 this.initializeApp();
             }
             
@@ -1056,18 +1124,21 @@
             
             initializeUI() {
                 lucide.createIcons();
+                // Set default Date Range: To Date = Today, From Date = Today - 30 days
                 const today = new Date();
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(today.getDate() - 30);
                 
-                document.getElementById('filter-date-from').value = thirtyDaysAgo.toISOString().split('T')[0];
-                document.getElementById('filter-date-to').value = today.toISOString().split('T')[0];
-                this.currentFilters.dateFrom = thirtyDaysAgo.toISOString().split('T')[0];
-                this.currentFilters.dateTo = today.toISOString().split('T')[0];
+                const fromFormatted = thirtyDaysAgo.toISOString().split('T')[0];
+                const toFormatted = today.toISOString().split('T')[0];
+
+                document.getElementById('filter-date-from').value = fromFormatted;
+                document.getElementById('filter-date-to').value = toFormatted;
+                this.currentFilters.dateFrom = fromFormatted;
+                this.currentFilters.dateTo = toFormatted;
             }
             
             setupFilters() {
-                // Collapsible filter toggle for clean layout
                 const toggleBar = document.getElementById('filter-toggle-bar');
                 const filtersBody = document.getElementById('filters-body');
                 const chevron = document.getElementById('filter-chevron');
@@ -1078,7 +1149,6 @@
                     chevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
                 });
 
-                // Collapsible charts toggle (Collapsed by default)
                 const chartsToggleBar = document.getElementById('charts-toggle-bar');
                 const chartsBody = document.getElementById('charts-body');
                 const chartsChevron = document.getElementById('charts-chevron');
@@ -1087,21 +1157,20 @@
                     const isHidden = chartsBody.style.display === 'none';
                     chartsBody.style.display = isHidden ? 'grid' : 'none';
                     chartsChevron.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
-                    if (isHidden) {
-                        this.updateCharts();
-                    }
                 });
 
-                // Real-time filtering for Return Number input
                 document.getElementById('filter-return-no').addEventListener('input', (e) => {
                     this.currentFilters.returnNo = e.target.value.trim().toLowerCase();
-                    this.currentPage = 1;
-                    this.updateDashboard();
                 });
 
-                ['date-from', 'date-to', 'status', 'store', 'center', 'officer'].forEach(id => {
+                ['date-from', 'date-to', 'status', 'store', 'center', 'officer', 'product'].forEach(id => {
                     document.getElementById(`filter-${id}`).addEventListener('change', (e) => {
-                        this.currentFilters[id.replace(/-([a-z])/g, (g) => g[1].toUpperCase())] = e.target.value;
+                        let filterKey = id.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                        if(id === 'store') filterKey = 'storeId';
+                        if(id === 'center') filterKey = 'centerId';
+                        if(id === 'officer') filterKey = 'officerId';
+                        if(id === 'product') filterKey = 'productId';
+                        this.currentFilters[filterKey] = e.target.value;
                     });
                 });
 
@@ -1111,6 +1180,10 @@
             }
             
             setupEventListeners() {
+                // Navigation Tabs
+                document.getElementById('nav-dashboard').addEventListener('click', () => this.switchTab('dashboard'));
+                document.getElementById('nav-detailed-analysis').addEventListener('click', () => this.switchTab('detailed'));
+
                 document.getElementById('refresh-data').addEventListener('click', async () => {
                     await this.loadData();
                     this.updateDashboard();
@@ -1129,6 +1202,8 @@
                 
                 document.getElementById('export-pdf').addEventListener('click', () => this.exportToPDF());
                 document.getElementById('export-excel').addEventListener('click', () => this.exportToExcel());
+                document.getElementById('detailed-export-excel').addEventListener('click', () => this.exportToExcel());
+                document.getElementById('detailed-export-pdf').addEventListener('click', () => this.exportToPDF());
                 
                 document.getElementById('prev-page').addEventListener('click', () => {
                     if (this.currentPage > 1) { this.currentPage--; this.updateTable(); }
@@ -1145,19 +1220,53 @@
                 document.getElementById('sidebar-close').addEventListener('click', () => {
                     document.getElementById('sidebar').classList.remove('mobile-open');
                 });
-                
-                document.getElementById('status-chart-period').addEventListener('change', () => this.updateStatusChart());
-                document.getElementById('trend-chart-period').addEventListener('change', () => this.updateTrendChart());
+            }
+
+            switchTab(tab) {
+                this.activeTab = tab;
+                const dashboardView = document.getElementById('dashboard-view');
+                const detailedView = document.getElementById('detailed-analysis-view');
+                const navDashboard = document.getElementById('nav-dashboard');
+                const navDetailed = document.getElementById('nav-detailed-analysis');
+                const title = document.getElementById('page-title');
+                const subtitle = document.getElementById('page-subtitle');
+
+                if (tab === 'dashboard') {
+                    dashboardView.classList.remove('hidden');
+                    detailedView.classList.add('hidden');
+                    navDashboard.classList.add('active');
+                    navDetailed.classList.remove('active');
+                    title.textContent = 'Dashboard Overview';
+                    subtitle.textContent = 'Track, manage, and analyze product return requests efficiently.';
+                } else {
+                    dashboardView.classList.add('hidden');
+                    detailedView.classList.remove('hidden');
+                    navDashboard.classList.remove('active');
+                    navDetailed.classList.add('active');
+                    title.textContent = 'Detailed Analysis';
+                    subtitle.textContent = 'Detailed multi-dimension return counts by stores, centers, officers, and products.';
+                }
+
+                // Close mobile sidebar if open
+                document.getElementById('sidebar').classList.remove('mobile-open');
+                this.updateDashboard();
             }
             
             populateFilterOptions() {
                 const storeSelect = document.getElementById('filter-store');
                 const centerSelect = document.getElementById('filter-center');
                 const officerSelect = document.getElementById('filter-officer');
+                const productSelect = document.getElementById('filter-product');
                 
-                this.data.stores.forEach(s => storeSelect.add(new Option(`${s.name} (${s.code})`, s.id)));
-                this.data.purchasingCenters.forEach(c => centerSelect.add(new Option(`${c.name} (${c.code})`, c.id)));
-                this.data.purchasingOfficers.forEach(o => officerSelect.add(new Option(`${o.name} (${o.code})`, o.id)));
+                storeSelect.innerHTML = '<option value="">All Stores</option>';
+                centerSelect.innerHTML = '<option value="">All Centers</option>';
+                officerSelect.innerHTML = '<option value="">All Officers</option>';
+                productSelect.innerHTML = '<option value="">All Products</option>';
+
+                this.data.stores.forEach(s => storeSelect.add(new Option(`${s.name} (${s.code || ''})`, s.id)));
+                this.data.purchasingCenters.forEach(c => centerSelect.add(new Option(`${c.name} (${c.code || ''})`, c.id)));
+                this.data.purchasingOfficers.forEach(o => officerSelect.add(new Option(`${o.name} (${o.code || ''})`, o.id)));
+                this.data.products.forEach(p => productSelect.add(new Option(`${p.description || p.code} (${p.code || ''})`, p.id)));
             }
             
             clearFilters() {
@@ -1165,6 +1274,7 @@
                 document.getElementById('filter-return-no').value = '';
                 document.getElementById('filter-status').value = '';
                 document.getElementById('filter-store').value = '';
+                document.getElementById('filter-product').value = '';
                 document.getElementById('filter-shop3ps-text').value = '';
                 document.getElementById('filter-center').value = '';
                 document.getElementById('filter-officer').value = '';
@@ -1172,6 +1282,7 @@
                 this.currentFilters.returnNo = '';
                 this.currentFilters.status = '';
                 this.currentFilters.storeId = '';
+                this.currentFilters.productId = '';
                 this.currentFilters.shop3psText = '';
                 this.currentFilters.centerId = '';
                 this.currentFilters.officerId = '';
@@ -1191,6 +1302,7 @@
                 if (this.currentFilters.dateTo) returns = returns.filter(r => new Date(r.returnDate) <= new Date(this.currentFilters.dateTo));
                 if (this.currentFilters.status) returns = returns.filter(r => r.status === this.currentFilters.status);
                 if (this.currentFilters.storeId) returns = returns.filter(r => r.storeId === this.currentFilters.storeId);
+                if (this.currentFilters.productId) returns = returns.filter(r => r.productId === this.currentFilters.productId);
                 
                 if (this.currentFilters.shop3psText) {
                     const query = this.currentFilters.shop3psText.toLowerCase();
@@ -1217,8 +1329,12 @@
             
             updateDashboard() {
                 this.updateKPICards();
-                this.updateTable();
-                this.updateCharts();
+                if (this.activeTab === 'dashboard') {
+                    this.updateTable();
+                    this.updateOverviewCharts();
+                } else {
+                    this.updateDetailedCharts();
+                }
             }
             
             updateKPICards() {
@@ -1264,9 +1380,7 @@
                     let shopDisplay = item.shop3ps || 'N/A';
                     if (this.data.shop3ps && this.data.shop3ps.length > 0) {
                         const foundShop = this.data.shop3ps.find(s => s.id === item.shop3ps);
-                        if (foundShop) {
-                            shopDisplay = foundShop.name || foundShop.code || item.shop3ps;
-                        }
+                        if (foundShop) shopDisplay = foundShop.name || foundShop.code || item.shop3ps;
                     }
 
                     const row = document.createElement('tr');
@@ -1309,9 +1423,7 @@
                 let shopDisplay = item.shop3ps || 'N/A';
                 if (this.data.shop3ps && this.data.shop3ps.length > 0) {
                     const foundShop = this.data.shop3ps.find(s => s.id === item.shop3ps);
-                    if (foundShop) {
-                        shopDisplay = `${foundShop.name || ''} (${foundShop.code || item.shop3ps})`;
-                    }
+                    if (foundShop) shopDisplay = `${foundShop.name || ''} (${foundShop.code || item.shop3ps})`;
                 }
 
                 const html = `
@@ -1370,23 +1482,16 @@
                 overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
             }
             
-            updateCharts() {
-                const chartsBody = document.getElementById('charts-body');
-                if (chartsBody.style.display === 'none') return;
-
-                this.updateStatusChart();
-                this.updateTrendChart();
-            }
-            
-            updateStatusChart() {
+            updateOverviewCharts() {
                 const filtered = this.getFilteredReturns();
+                
+                // Status Chart
                 const counts = { pending: 0, approved: 0, rejected: 0, completed: 0 };
                 filtered.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
                 
-                const ctx = document.getElementById('status-chart').getContext('2d');
+                const ctxStatus = document.getElementById('status-chart').getContext('2d');
                 if (this.charts.statusChart) this.charts.statusChart.destroy();
-                
-                this.charts.statusChart = new Chart(ctx, {
+                this.charts.statusChart = new Chart(ctxStatus, {
                     type: 'doughnut',
                     data: {
                         labels: ['Pending', 'Approved', 'Rejected', 'Completed'],
@@ -1394,17 +1499,14 @@
                     },
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
                 });
-            }
-            
-            updateTrendChart() {
-                const filtered = this.getFilteredReturns();
+
+                // Trend Chart
                 const months = {};
                 for (let i = 5; i >= 0; i--) {
                     const d = new Date();
                     d.setMonth(d.getMonth() - i);
                     months[d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })] = 0;
                 }
-                
                 filtered.forEach(r => {
                     if (r.returnDate) {
                         const key = new Date(r.returnDate).toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
@@ -1412,10 +1514,9 @@
                     }
                 });
                 
-                const ctx = document.getElementById('trend-chart').getContext('2d');
+                const ctxTrend = document.getElementById('trend-chart').getContext('2d');
                 if (this.charts.trendChart) this.charts.trendChart.destroy();
-                
-                this.charts.trendChart = new Chart(ctx, {
+                this.charts.trendChart = new Chart(ctxTrend, {
                     type: 'line',
                     data: {
                         labels: Object.keys(months),
@@ -1425,11 +1526,76 @@
                 });
             }
 
+            updateDetailedCharts() {
+                const filtered = this.getFilteredReturns();
+
+                // 1. Return Count By Stores
+                const storeCounts = {};
+                filtered.forEach(r => {
+                    const store = this.data.stores.find(s => s.id === r.storeId);
+                    const name = store ? store.name : 'Unknown Store';
+                    storeCounts[name] = (storeCounts[name] || 0) + 1;
+                });
+
+                // 2. Return Count By Purchasing Center
+                const centerCounts = {};
+                filtered.forEach(r => {
+                    const center = this.data.purchasingCenters.find(c => c.id === r.purchasingCenterId);
+                    const name = center ? center.name : 'Unknown Center';
+                    centerCounts[name] = (centerCounts[name] || 0) + 1;
+                });
+
+                // 3. Return Count By Purchasing Officer
+                const officerCounts = {};
+                filtered.forEach(r => {
+                    const officer = this.data.purchasingOfficers.find(o => o.id === r.purchasingOfficerId);
+                    const name = officer ? officer.name : 'Unknown Officer';
+                    officerCounts[name] = (officerCounts[name] || 0) + 1;
+                });
+
+                // 4. Return Count By Product
+                const productCounts = {};
+                filtered.forEach(r => {
+                    const product = this.data.products.find(p => p.id === r.productId);
+                    const name = product ? (product.description || product.code) : 'Unknown Product';
+                    productCounts[name] = (productCounts[name] || 0) + 1;
+                });
+
+                // Helper to render Bar Charts
+                const renderBarChart = (canvasId, chartKey, labels, data, color) => {
+                    const ctx = document.getElementById(canvasId).getContext('2d');
+                    if (this.charts[chartKey]) this.charts[chartKey].destroy();
+                    this.charts[chartKey] = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Return Count',
+                                data: data,
+                                backgroundColor: color,
+                                borderRadius: 6
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                        }
+                    });
+                };
+
+                renderBarChart('chart-store-returns', 'storeChart', Object.keys(storeCounts), Object.values(storeCounts), '#3b82f6');
+                renderBarChart('chart-center-returns', 'centerChart', Object.keys(centerCounts), Object.values(centerCounts), '#10b981');
+                renderBarChart('chart-officer-returns', 'officerChart', Object.keys(officerCounts), Object.values(officerCounts), '#f59e0b');
+                renderBarChart('chart-product-returns', 'productChart', Object.keys(productCounts), Object.values(productCounts), '#8b5cf6');
+            }
+
             exportToExcel() {
                 const filteredReturns = this.getFilteredReturns();
                 
                 if (filteredReturns.length === 0) {
-                    this.showToast('No data available to export for selected period.', 'warning');
+                    this.showToast('No data available to export for selected search criteria.', 'warning');
                     return;
                 }
 
@@ -1463,29 +1629,59 @@
 
                 const worksheet = XLSX.utils.json_to_sheet(excelData);
                 const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Raw Returns Data");
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Returns Analysis");
 
                 const dateFrom = this.currentFilters.dateFrom || 'Start';
                 const dateTo = this.currentFilters.dateTo || 'End';
-                const filename = `Returns_Raw_Data_${dateFrom}_to_${dateTo}.xlsx`;
+                const filename = `Returns_Analysis_Report_${dateFrom}_to_${dateTo}.xlsx`;
 
                 XLSX.writeFile(workbook, filename);
-                this.showToast('Raw data exported to Excel successfully!', 'success');
+                this.showToast('Filtered report exported to Excel successfully!', 'success');
             }
             
             exportToPDF() {
                 const filtered = this.getFilteredReturns();
-                if (!filtered.length) { this.showToast('No data to export', 'warning'); return; }
+                if (!filtered.length) { this.showToast('No filtered data available to export', 'warning'); return; }
+                
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF('l', 'mm', 'a4');
-                doc.text('Returns Analytics Report', 14, 15);
-                doc.autoTable({
-                    startY: 20,
-                    head: [['Doc No.', 'Date', 'Qty', 'Price', 'Total Value', 'Status']],
-                    body: filtered.map(r => [r.returnId || '', r.returnDate || '', r.quantity || 0, `$${(r.pricePerUnit || 0).toFixed(2)}`, `$${(r.totalReturnValue || 0).toFixed(2)}`, r.status || ''])
+                
+                doc.setFontSize(16);
+                doc.text('Returns Analysis Summary Report', 14, 15);
+                
+                doc.setFontSize(10);
+                doc.text(`Generated Date: ${new Date().toLocaleDateString()} | Filter Range: ${this.currentFilters.dateFrom} to ${this.currentFilters.dateTo}`, 14, 22);
+
+                const tableBody = filtered.map(item => {
+                    const product = this.data.products.find(p => p.id === item.productId);
+                    const store = this.data.stores.find(s => s.id === item.storeId);
+                    const center = this.data.purchasingCenters.find(c => c.id === item.purchasingCenterId);
+                    const officer = this.data.purchasingOfficers.find(o => o.id === item.purchasingOfficerId);
+
+                    return [
+                        item.returnId || '',
+                        item.returnDate || '',
+                        product?.code || '',
+                        product?.description || '',
+                        store?.name || '',
+                        center?.name || '',
+                        officer?.name || '',
+                        item.quantity || 0,
+                        `$${(item.totalReturnValue || 0).toFixed(2)}`,
+                        item.status || ''
+                    ];
                 });
-                doc.save('Returns_Report.pdf');
-                this.showToast('PDF exported successfully', 'success');
+
+                doc.autoTable({
+                    startY: 28,
+                    head: [['Doc No.', 'Date', 'Item Code', 'Description', 'Store', 'Center', 'Officer', 'Qty', 'Total Value', 'Status']],
+                    body: tableBody,
+                    styles: { fontSize: 8 },
+                    headStyles: { fillColor: [37, 99, 235] }
+                });
+
+                doc.save(`Returns_Analysis_Report_${this.currentFilters.dateFrom}_to_${this.currentFilters.dateTo}.pdf`);
+                this.showToast('PDF Report exported successfully', 'success');
             }
             
             showToast(msg, type = 'success') {

@@ -976,7 +976,7 @@
                     </div>
 
                     <!-- 4 Targeted Analytics Charts -->
-                    <div class="charts-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); padding: 0; background: transparent;">
+                    <div class="charts-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); padding: 0; background: transparent; margin-bottom: 24px;">
                         <!-- Chart 1: Return Count By Stores -->
                         <div class="chart-card card">
                             <div class="chart-header">
@@ -1015,6 +1015,64 @@
                             <div class="chart-container">
                                 <canvas id="chart-product-returns"></canvas>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 1: Financial Impact & Refund Rate Analysis -->
+                    <div class="card" style="padding: 20px; margin-bottom: 24px;">
+                        <div class="chart-header" style="margin-bottom: 16px;">
+                            <h3>Financial Impact & Refund Rate Analysis</h3>
+                        </div>
+                        <div class="charts-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); padding: 0; background: transparent; border: none; margin-bottom: 16px;">
+                            <div class="chart-container" style="height: 280px;">
+                                <canvas id="financial-impact-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Store / Entity</th>
+                                        <th>Total Return Value</th>
+                                        <th>Refundable Value</th>
+                                        <th>Non-Refundable Loss</th>
+                                        <th>Refund Rate (%)</th>
+                                        <th>Loss Rate (%)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="financial-impact-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: Pareto Principle (80/20 Rule) Analysis -->
+                    <div class="card" style="padding: 20px;">
+                        <div class="chart-header" style="margin-bottom: 16px;">
+                            <h3>Pareto Principle (80/20 Rule) Analysis - Top Return Drivers</h3>
+                        </div>
+                        <div class="charts-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); padding: 0; background: transparent; border: none; margin-bottom: 16px;">
+                            <div class="chart-container" style="height: 280px;">
+                                <canvas id="pareto-chart"></canvas>
+                            </div>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Product / Driver</th>
+                                        <th>Return Count</th>
+                                        <th>Total Value</th>
+                                        <th>% of Total Loss</th>
+                                        <th>Cumulative %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pareto-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -1058,14 +1116,16 @@
                 this.currentFilters = { returnNo: '', dateFrom: '', dateTo: '', status: '', storeId: '', shop3psText: '', centerId: '', officerId: '', productId: '' };
                 this.currentPage = 1;
                 this.itemsPerPage = 10;
-                this.activeTab = 'dashboard'; // 'dashboard' or 'detailed'
+                this.activeTab = 'dashboard';
                 this.charts = { 
                     statusChart: null, 
                     trendChart: null,
                     storeChart: null,
                     centerChart: null,
                     officerChart: null,
-                    productChart: null
+                    productChart: null,
+                    financialImpactChart: null,
+                    paretoChart: null
                 };
                 this.initializeApp();
             }
@@ -1124,7 +1184,6 @@
             
             initializeUI() {
                 lucide.createIcons();
-                // Set default Date Range: To Date = Today, From Date = Today - 30 days
                 const today = new Date();
                 const thirtyDaysAgo = new Date();
                 thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -1180,7 +1239,6 @@
             }
             
             setupEventListeners() {
-                // Navigation Tabs
                 document.getElementById('nav-dashboard').addEventListener('click', () => this.switchTab('dashboard'));
                 document.getElementById('nav-detailed-analysis').addEventListener('click', () => this.switchTab('detailed'));
 
@@ -1244,10 +1302,9 @@
                     navDashboard.classList.remove('active');
                     navDetailed.classList.add('active');
                     title.textContent = 'Detailed Analysis';
-                    subtitle.textContent = 'Detailed multi-dimension return counts by stores, centers, officers, and products.';
+                    subtitle.textContent = 'Detailed multi-dimension return counts, financial impacts, and Pareto analysis.';
                 }
 
-                // Close mobile sidebar if open
                 document.getElementById('sidebar').classList.remove('mobile-open');
                 this.updateDashboard();
             }
@@ -1334,6 +1391,8 @@
                     this.updateOverviewCharts();
                 } else {
                     this.updateDetailedCharts();
+                    this.updateFinancialImpactAnalysis();
+                    this.updateParetoAnalysis();
                 }
             }
             
@@ -1485,7 +1544,6 @@
             updateOverviewCharts() {
                 const filtered = this.getFilteredReturns();
                 
-                // Status Chart
                 const counts = { pending: 0, approved: 0, rejected: 0, completed: 0 };
                 filtered.forEach(r => { if (counts[r.status] !== undefined) counts[r.status]++; });
                 
@@ -1500,7 +1558,6 @@
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
                 });
 
-                // Trend Chart
                 const months = {};
                 for (let i = 5; i >= 0; i--) {
                     const d = new Date();
@@ -1529,7 +1586,6 @@
             updateDetailedCharts() {
                 const filtered = this.getFilteredReturns();
 
-                // 1. Return Count By Stores
                 const storeCounts = {};
                 filtered.forEach(r => {
                     const store = this.data.stores.find(s => s.id === r.storeId);
@@ -1537,7 +1593,6 @@
                     storeCounts[name] = (storeCounts[name] || 0) + 1;
                 });
 
-                // 2. Return Count By Purchasing Center
                 const centerCounts = {};
                 filtered.forEach(r => {
                     const center = this.data.purchasingCenters.find(c => c.id === r.purchasingCenterId);
@@ -1545,7 +1600,6 @@
                     centerCounts[name] = (centerCounts[name] || 0) + 1;
                 });
 
-                // 3. Return Count By Purchasing Officer
                 const officerCounts = {};
                 filtered.forEach(r => {
                     const officer = this.data.purchasingOfficers.find(o => o.id === r.purchasingOfficerId);
@@ -1553,7 +1607,6 @@
                     officerCounts[name] = (officerCounts[name] || 0) + 1;
                 });
 
-                // 4. Return Count By Product
                 const productCounts = {};
                 filtered.forEach(r => {
                     const product = this.data.products.find(p => p.id === r.productId);
@@ -1561,7 +1614,6 @@
                     productCounts[name] = (productCounts[name] || 0) + 1;
                 });
 
-                // Helper to render Bar Charts
                 const renderBarChart = (canvasId, chartKey, labels, data, color) => {
                     const ctx = document.getElementById(canvasId).getContext('2d');
                     if (this.charts[chartKey]) this.charts[chartKey].destroy();
@@ -1589,6 +1641,174 @@
                 renderBarChart('chart-center-returns', 'centerChart', Object.keys(centerCounts), Object.values(centerCounts), '#10b981');
                 renderBarChart('chart-officer-returns', 'officerChart', Object.keys(officerCounts), Object.values(officerCounts), '#f59e0b');
                 renderBarChart('chart-product-returns', 'productChart', Object.keys(productCounts), Object.values(productCounts), '#8b5cf6');
+            }
+
+            /* --- NEW METHOD 1: Financial Impact & Refund Rate Analysis --- */
+            updateFinancialImpactAnalysis() {
+                const filtered = this.getFilteredReturns();
+                const storeFinancials = {};
+
+                filtered.forEach(r => {
+                    const store = this.data.stores.find(s => s.id === r.storeId);
+                    const storeName = store ? store.name : 'Unknown Store';
+                    
+                    if (!storeFinancials[storeName]) {
+                        storeFinancials[storeName] = { total: 0, refundable: 0, nonRefundable: 0 };
+                    }
+                    storeFinancials[storeName].total += (r.totalReturnValue || 0);
+                    storeFinancials[storeName].refundable += (r.refundableValue || 0);
+                    storeFinancials[storeName].nonRefundable += (r.nonUsableValue || 0);
+                });
+
+                const labels = Object.keys(storeFinancials);
+                const totals = labels.map(l => storeFinancials[l].total);
+                const refundables = labels.map(l => storeFinancials[l].refundable);
+                const nonRefundables = labels.map(l => storeFinancials[l].nonRefundable);
+
+                // Update Chart
+                const ctx = document.getElementById('financial-impact-chart').getContext('2d');
+                if (this.charts.financialImpactChart) this.charts.financialImpactChart.destroy();
+
+                this.charts.financialImpactChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            { label: 'Total Value ($)', data: totals, backgroundColor: '#3b82f6', borderRadius: 4 },
+                            { label: 'Refundable ($)', data: refundables, backgroundColor: '#10b981', borderRadius: 4 },
+                            { label: 'Non-Refundable ($)', data: nonRefundables, backgroundColor: '#ef4444', borderRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+
+                // Update Table
+                const tbody = document.getElementById('financial-impact-table-body');
+                tbody.innerHTML = '';
+
+                if (labels.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 16px;">No financial data available for selected criteria.</td></tr>`;
+                    return;
+                }
+
+                labels.forEach(storeName => {
+                    const item = storeFinancials[storeName];
+                    const refundRate = item.total > 0 ? ((item.refundable / item.total) * 100).toFixed(1) : '0.0';
+                    const lossRate = item.total > 0 ? ((item.nonRefundable / item.total) * 100).toFixed(1) : '0.0';
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${storeName}</strong></td>
+                        <td>$${item.total.toFixed(2)}</td>
+                        <td class="text-success">$${item.refundable.toFixed(2)}</td>
+                        <td class="text-destructive">$${item.nonRefundable.toFixed(2)}</td>
+                        <td><span class="badge badge-approved">${refundRate}%</span></td>
+                        <td><span class="badge badge-rejected">${lossRate}%</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            /* --- NEW METHOD 2: Pareto Principle (80/20 Rule Analysis) --- */
+            updateParetoAnalysis() {
+                const filtered = this.getFilteredReturns();
+                const productMap = {};
+
+                filtered.forEach(r => {
+                    const product = this.data.products.find(p => p.id === r.productId);
+                    const prodName = product ? `${product.description || product.code}` : 'Unknown Product';
+
+                    if (!productMap[prodName]) {
+                        productMap[prodName] = { count: 0, totalValue: 0 };
+                    }
+                    productMap[prodName].count += 1;
+                    productMap[prodName].totalValue += (r.totalReturnValue || 0);
+                });
+
+                // Sort Products by Total Return Value descending
+                const sortedProducts = Object.keys(productMap)
+                    .map(name => ({ name, ...productMap[name] }))
+                    .sort((a, b) => b.totalValue - a.totalValue);
+
+                const overallTotalValue = sortedProducts.reduce((sum, p) => sum + p.totalValue, 0);
+
+                let cumulativeValue = 0;
+                const paretoData = sortedProducts.map(p => {
+                    cumulativeValue += p.totalValue;
+                    const percentShare = overallTotalValue > 0 ? (p.totalValue / overallTotalValue) * 100 : 0;
+                    const cumulativePercent = overallTotalValue > 0 ? (cumulativeValue / overallTotalValue) * 100 : 0;
+                    return { ...p, percentShare, cumulativePercent };
+                });
+
+                // Render Chart (Line-Bar Combo)
+                const labels = paretoData.map(p => p.name);
+                const values = paretoData.map(p => p.totalValue);
+                const cumulativePercents = paretoData.map(p => p.cumulativePercent);
+
+                const ctx = document.getElementById('pareto-chart').getContext('2d');
+                if (this.charts.paretoChart) this.charts.paretoChart.destroy();
+
+                this.charts.paretoChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                type: 'bar',
+                                label: 'Return Value ($)',
+                                data: values,
+                                backgroundColor: '#8b5cf6',
+                                yAxisID: 'y'
+                            },
+                            {
+                                type: 'line',
+                                label: 'Cumulative Loss %',
+                                data: cumulativePercents,
+                                borderColor: '#ef4444',
+                                borderWidth: 2,
+                                fill: false,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } },
+                        scales: {
+                            y: { beginAtZero: true, position: 'left' },
+                            y1: { beginAtZero: true, max: 100, position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+                        }
+                    }
+                });
+
+                // Render Table
+                const tbody = document.getElementById('pareto-table-body');
+                tbody.innerHTML = '';
+
+                if (paretoData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 16px;">No Pareto data available for selected criteria.</td></tr>`;
+                    return;
+                }
+
+                paretoData.forEach((item, index) => {
+                    const isTop80 = item.cumulativePercent <= 80 || (index > 0 && paretoData[index-1].cumulativePercent < 80);
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>#${index + 1}</strong></td>
+                        <td>${item.name} ${isTop80 ? '<span class="badge badge-rejected" style="margin-left: 6px;">Top 80% Driver</span>' : ''}</td>
+                        <td>${item.count}</td>
+                        <td><strong>$${item.totalValue.toFixed(2)}</strong></td>
+                        <td>${item.percentShare.toFixed(1)}%</td>
+                        <td><strong>${item.cumulativePercent.toFixed(1)}%</strong></td>
+                    `;
+                    tbody.appendChild(row);
+                });
             }
 
             exportToExcel() {
